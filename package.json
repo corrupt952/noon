@@ -1,0 +1,23 @@
+{
+  "name": "noon",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "noon": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "compile": "bun build --compile src/index.ts --outfile noon --define \"process.env.NOTION_CLIENT_ID='$NOTION_CLIENT_ID'\" --define \"process.env.NOTION_CLIENT_SECRET='$NOTION_CLIENT_SECRET'\"",
+    "dev": "bun run src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.3",
+    "@notionhq/client": "^2.2.15",
+    "@toon-format/toon": "^2.1.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.14",
+    "typescript": "^5.7.2"
+  }
+}
