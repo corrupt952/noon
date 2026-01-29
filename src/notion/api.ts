@@ -48,12 +48,19 @@ export async function getClient(): Promise<Client> {
 
 // ============ Search ============
 
-export async function search(query: string, filter?: "page" | "database") {
+export async function search(
+  query: string,
+  filter?: "page" | "database",
+  startCursor?: string,
+) {
   const client = await getClient();
   const params: Parameters<typeof client.search>[0] = { query };
 
   if (filter) {
     params.filter = { property: "object", value: filter };
+  }
+  if (startCursor) {
+    params.start_cursor = startCursor;
   }
 
   return client.search(params);
@@ -86,12 +93,14 @@ export async function queryDataSource(
   dataSourceId: string,
   filter?: QueryFilter,
   sorts?: QuerySorts,
+  startCursor?: string,
 ) {
   const client = await getClient();
   return client.dataSources.query({
     data_source_id: dataSourceId,
     ...(filter && { filter }),
     ...(sorts && { sorts }),
+    ...(startCursor && { start_cursor: startCursor }),
   });
 }
 

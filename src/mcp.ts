@@ -34,9 +34,13 @@ server.tool(
   "Search Notion pages and databases by keyword. Returns a list of matching items with their IDs and titles. Use noon_page to get full content of a specific page. For data_source objects (databases), use noon_database or noon_query with the id.",
   {
     query: z.string().describe("Search keyword"),
+    cursor: z
+      .string()
+      .optional()
+      .describe("Pagination cursor from previous response's next_cursor"),
   },
-  async ({ query }) => {
-    const results = await search(query);
+  async ({ query, cursor }) => {
+    const results = await search(query, undefined, cursor);
     return {
       content: [{ type: "text", text: toToon(slimSearchResults(results)) }],
     };
@@ -105,14 +109,23 @@ server.tool(
       .describe(
         'Sorts JSON array. Example: [{"property":"Created","direction":"descending"}]',
       ),
+    cursor: z
+      .string()
+      .optional()
+      .describe("Pagination cursor from previous response's next_cursor"),
   },
-  async ({ id, filter: filterJson, sorts: sortsJson }) => {
+  async ({ id, filter: filterJson, sorts: sortsJson, cursor }) => {
     try {
       const filter = filterJson ? parseFilter(filterJson) : undefined;
       const sorts = sortsJson ? parseSorts(sortsJson) : undefined;
 
       const dataSourceId = parseNotionId(id);
-      const results = await queryDataSource(dataSourceId, filter, sorts);
+      const results = await queryDataSource(
+        dataSourceId,
+        filter,
+        sorts,
+        cursor,
+      );
       return {
         content: [{ type: "text", text: toToon(slimQueryResults(results)) }],
       };
