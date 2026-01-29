@@ -33,6 +33,14 @@ async function ensureValidToken(): Promise<TokenData> {
 export async function getClient(): Promise<Client> {
   if (notionClient) return notionClient;
 
+  // 1. API token (env) - for CI/simple use
+  const apiToken = process.env.NOTION_TOKEN;
+  if (apiToken) {
+    notionClient = new Client({ auth: apiToken });
+    return notionClient;
+  }
+
+  // 2. OAuth access token
   const token = await ensureValidToken();
   notionClient = new Client({ auth: token.access_token });
   return notionClient;

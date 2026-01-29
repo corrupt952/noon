@@ -8,12 +8,20 @@ const SOURCE_LABELS: Record<string, string> = {
 };
 
 export async function handleStatus(): Promise<void> {
+  const apiToken = process.env.NOTION_TOKEN;
   const token = getToken();
   const credentials = getClientCredentials();
   const source = getCredentialsSource();
 
-  console.log("=== Notion CLI Status ===\n");
+  console.log("=== noon Status ===\n");
 
+  // API Token takes priority
+  if (apiToken) {
+    console.log("✅ API token configured (from env: NOTION_TOKEN)");
+    return;
+  }
+
+  // OAuth flow
   if (credentials && source) {
     console.log(`✅ Client credentials configured (${SOURCE_LABELS[source]})`);
   } else {
