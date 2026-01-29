@@ -1,7 +1,6 @@
 #!/usr/bin/env bun
 import { startAuthFlow } from "./auth";
 import { clearToken } from "./config";
-import { setOutputJson } from "./output";
 import {
   handleConfig,
   handleStatus,
@@ -28,7 +27,8 @@ COMMANDS:
   query <id|url>    Query database records
 
   mcp               Start as MCP server (stdio)
-  mcp install       Show claude mcp add command
+  mcp install       Show claude mcp add command (default: --scope user)
+  mcp install --local  Install to current project only
   mcp config        Show mcpServers JSON config
 
 OPTIONS:
@@ -45,25 +45,25 @@ EXAMPLES:
 async function main() {
   const args = process.argv.slice(2);
 
-  // Check for --json flag
-  if (args.includes("--json")) {
-    setOutputJson(true);
-  }
-
-  // Filter out flags for command processing
-  const filteredArgs = args.filter(a => !a.startsWith("--"));
-
-  if (filteredArgs.length === 0 || args.includes("--help") || args.includes("-h")) {
+  if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
     console.log(HELP);
     return;
   }
 
-  const command = filteredArgs[0];
+  // First positional argument is the command
+  const command = args.find(a => !a.startsWith("-"));
+  if (!command) {
+    console.log(HELP);
+    return;
+  }
+
+  // Pass remaining args to command handler
+  const commandArgs = args.slice(args.indexOf(command) + 1);
 
   try {
     switch (command) {
       case "config":
-        await handleConfig(filteredArgs.slice(1));
+        await handleConfig(commandArgs);
         break;
 
       case "auth":
@@ -80,19 +80,19 @@ async function main() {
         break;
 
       case "search":
-        await handleSearch(filteredArgs.slice(1));
+        await handleSearch(commandArgs);
         break;
 
       case "page":
-        await handlePage(filteredArgs.slice(1));
+        await handlePage(commandArgs);
         break;
 
       case "query":
-        await handleQuery(filteredArgs.slice(1));
+        await handleQuery(commandArgs);
         break;
 
       case "mcp":
-        await handleMcp(filteredArgs.slice(1));
+        await handleMcp(commandArgs);
         break;
 
       default:

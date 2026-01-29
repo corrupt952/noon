@@ -7,10 +7,12 @@ export async function handleMcp(args: string[]): Promise<void> {
     case "install": {
       const execPath = process.execPath;
       const scriptPath = process.argv[1];
+      const isLocal = args.includes("--local");
+      const scope = isLocal ? "local" : "user";
       // If running as compiled binary, use execPath; otherwise use bun + script
       const command = scriptPath.endsWith(".ts")
-        ? `claude mcp add noon -- bun run ${scriptPath} mcp`
-        : `claude mcp add noon -- ${execPath} mcp`;
+        ? `claude mcp add noon --scope ${scope} -- bun run ${scriptPath} mcp`
+        : `claude mcp add noon --scope ${scope} -- ${execPath} mcp`;
       console.log(command);
       break;
     }

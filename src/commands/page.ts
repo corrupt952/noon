@@ -2,9 +2,11 @@ import { output } from "../output";
 import { parseNotionId, getPageWithCache, slimBlock, extractTitle } from "../notion";
 
 export async function handlePage(args: string[]): Promise<void> {
-  const input = args[0];
+  const json = args.includes("--json");
+  const input = args.find(a => !a.startsWith("-"));
+
   if (!input) {
-    console.error("Usage: noon page <page-id|url>");
+    console.error("Usage: noon page <page-id|url> [--json]");
     process.exit(1);
   }
 
@@ -16,5 +18,5 @@ export async function handlePage(args: string[]): Promise<void> {
     title: result.page.title,
     url: result.page.url,
     blocks: result.blocks,
-  });
+  }, json);
 }
