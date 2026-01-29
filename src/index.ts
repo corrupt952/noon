@@ -1,19 +1,10 @@
 #!/usr/bin/env bun
 import { startAuthFlow } from "./auth";
-import {
-  handleCache,
-  handleConfig,
-  handleDatabase,
-  handleMcp,
-  handlePage,
-  handleQuery,
-  handleSearch,
-  handleStatus,
-} from "./commands";
+import { handleCache, handleConfig, handleMcp, handleStatus } from "./commands";
 import { clearToken } from "./config";
 
 const HELP = `
-noon - Lightweight Notion CLI
+noon - Notion MCP Server
 
 USAGE:
   noon <command> [options]
@@ -25,11 +16,6 @@ COMMANDS:
   config            Configure client credentials
   cache clear       Clear all cached pages
 
-  search <query>              Search pages and databases
-  page <id|url>               Get page content (supports --format)
-  database <id|url>           Get database schema (properties)
-  query <id|url>              Query database records
-
   mcp               Start as MCP server (stdio)
   mcp install       Show claude mcp add command (default: --scope user)
   mcp install --local  Install to current project only
@@ -37,18 +23,11 @@ COMMANDS:
 
 OPTIONS:
   --help, -h        Show this help
-  --json            Output as JSON (all read commands)
-  --format <fmt>    Output format: toon, json, markdown (page only)
-  --filter <json>   Filter query results (query only)
-  --sorts <json>    Sort query results (query only)
 
 EXAMPLES:
   noon auth
-  noon search "Meeting Notes"
-  noon page abc123 --format markdown
-  noon database abc123
-  noon query abc123 --filter '{"property":"Status","select":{"equals":"Done"}}'
   noon mcp
+  noon mcp install
 `;
 
 async function main() {
@@ -90,22 +69,6 @@ async function main() {
 
       case "cache":
         await handleCache(commandArgs);
-        break;
-
-      case "search":
-        await handleSearch(commandArgs);
-        break;
-
-      case "page":
-        await handlePage(commandArgs);
-        break;
-
-      case "database":
-        await handleDatabase(commandArgs);
-        break;
-
-      case "query":
-        await handleQuery(commandArgs);
         break;
 
       case "mcp":

@@ -1,6 +1,5 @@
 import type {
   BlockObjectResponse,
-  DatabaseObjectResponse,
   PageObjectResponse,
   QueryDataSourceParameters,
 } from "@notionhq/client";
@@ -65,30 +64,11 @@ export async function getPageContent(pageId: string) {
   return blocks;
 }
 
-// ============ Databases ============
-
-export async function getDatabase(databaseId: string) {
-  const client = await getClient();
-  return client.databases.retrieve({ database_id: databaseId });
-}
+// ============ Data Sources ============
 
 export async function getDataSource(dataSourceId: string) {
   const client = await getClient();
   return client.dataSources.retrieve({ data_source_id: dataSourceId });
-}
-
-export async function getDataSourceSchema(databaseId: string) {
-  const client = await getClient();
-
-  const database = (await client.databases.retrieve({
-    database_id: databaseId,
-  })) as DatabaseObjectResponse;
-  if (database.data_sources.length === 0) {
-    throw new Error("Database has no data sources");
-  }
-
-  const dataSourceId = database.data_sources[0].id;
-  return getDataSource(dataSourceId);
 }
 
 export type QueryFilter = QueryDataSourceParameters["filter"];
@@ -105,24 +85,6 @@ export async function queryDataSource(
     ...(filter && { filter }),
     ...(sorts && { sorts }),
   });
-}
-
-export async function queryDatabase(
-  databaseId: string,
-  filter?: QueryFilter,
-  sorts?: QuerySorts,
-) {
-  const client = await getClient();
-
-  const database = (await client.databases.retrieve({
-    database_id: databaseId,
-  })) as DatabaseObjectResponse;
-  if (database.data_sources.length === 0) {
-    throw new Error("Database has no data sources");
-  }
-
-  const dataSourceId = database.data_sources[0].id;
-  return queryDataSource(dataSourceId, filter, sorts);
 }
 
 // ============ Blocks ============

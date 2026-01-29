@@ -1,13 +1,13 @@
 # noon
 
-Lightweight Notion CLI & MCP Server
+Lightweight Notion MCP Server
 
 ## Features
 
 - OAuth 2.0 + PKCE authentication
-- CLI commands for searching and reading Notion content
 - MCP (Model Context Protocol) server for AI integration
 - Minimal output format using TOON
+- Notion API v5 support (data_source based)
 
 ## Installation
 
@@ -49,54 +49,7 @@ export NOTION_CLIENT_SECRET=xxx
 noon auth
 ```
 
-## CLI Usage
-
-```bash
-# Authentication
-noon auth              # Start OAuth flow
-noon logout            # Clear saved credentials
-noon status            # Show authentication status
-
-# Read operations
-noon search <query>              # Search pages and databases
-noon page <id|url>               # Get page content
-noon database <id|url>           # Get database schema (properties)
-noon query <id|url>              # Query database records
-
-# Cache management
-noon cache clear                 # Clear all cached pages
-
-# Options (global)
---json                 # Output as JSON (default: TOON)
---help                 # Show help
-
-# Options (page command only)
---format toon|json|markdown      # Output format
-
-# Options (query command only)
---filter '{"property":"Status","select":{"equals":"Done"}}'
---sorts '[{"property":"Created","direction":"descending"}]'
-```
-
-## MCP Server
-
-Start as MCP server for AI assistants:
-
-```bash
-noon mcp
-```
-
-### Available Tools
-
-| Tool | Description |
-|------|-------------|
-| `noon_search` | Search Notion pages and databases by keyword |
-| `noon_page` | Get Notion page content with nested blocks (cached) |
-| `noon_database` | Get database schema (properties, select options) |
-| `noon_query` | Query database records with filter/sort support |
-| `noon_clear_cache` | Clear all cached Notion pages |
-
-### Claude Code Setup
+### 4. Install MCP Server
 
 ```bash
 # Quick install (globally available)
@@ -109,14 +62,38 @@ eval $(noon mcp install --local)
 noon mcp config
 ```
 
+## MCP Tools
+
+| Tool | Description |
+|------|-------------|
+| `noon_search` | Search Notion pages and databases by keyword |
+| `noon_page` | Get Notion page content with nested blocks (cached) |
+| `noon_database` | Get database schema (properties, select options) |
+| `noon_query` | Query database records with filter/sort support |
+| `noon_clear_cache` | Clear all cached Notion pages |
+
+### Usage Flow
+
+1. `noon_search` to find pages or databases (data_source)
+2. For data_source: use `noon_database` to get schema, `noon_query` to search records
+3. For page: use `noon_page` to get content
+
+## CLI Commands
+
+```bash
+noon auth              # Start OAuth flow
+noon logout            # Clear saved credentials
+noon status            # Show authentication status
+noon config            # Configure client credentials
+noon cache clear       # Clear all cached pages
+noon mcp               # Start MCP server
+noon mcp install       # Show claude mcp add command
+noon mcp config        # Show mcpServers JSON config
+```
+
 ## Configuration
 
 Config file location: `~/.config/noon/config.json`
-
-## Roadmap
-
-- [ ] Write operations (create/update pages, databases)
-- [ ] Block operations (create/update/delete blocks)
 
 ## License
 
