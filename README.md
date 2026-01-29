@@ -1,99 +1,101 @@
 # noon
 
-Lightweight Notion MCP Server
+Lightweight, read-only Notion MCP Server optimized for token efficiency.
 
 ## Features
 
-- OAuth 2.0 + PKCE authentication
-- MCP (Model Context Protocol) server for AI integration
-- Minimal output format using TOON
-- Notion API v5 support (data_source based)
+- Simple auth with `NOTION_TOKEN` or OAuth 2.0 + PKCE
+- Minimal output using [TOON format](https://github.com/toon-format/toon)
+- Smart caching based on `last_edited_time`
+- Recursive block fetching in a single call
+- Pre-built binaries for macOS and Linux
 
 ## Installation
 
+Download from [Releases](https://github.com/corrupt952/noon/releases):
+
 ```bash
-bun install
-bun run build
+# macOS (Apple Silicon)
+curl -L https://github.com/corrupt952/noon/releases/latest/download/noon-darwin-arm64 -o noon && chmod +x noon
+
+# macOS (Intel)
+curl -L https://github.com/corrupt952/noon/releases/latest/download/noon-darwin-x64 -o noon && chmod +x noon
+
+# Linux (x64)
+curl -L https://github.com/corrupt952/noon/releases/latest/download/noon-linux-x64 -o noon && chmod +x noon
+
+# Linux (arm64)
+curl -L https://github.com/corrupt952/noon/releases/latest/download/noon-linux-arm64 -o noon && chmod +x noon
 ```
 
-### With embedded credentials (for distribution)
+## Authentication
+
+Choose one of the following methods:
+
+**API Token (Simple)**
 
 ```bash
-NOTION_CLIENT_ID=xxx NOTION_CLIENT_SECRET=xxx bun run compile
+export NOTION_TOKEN=ntn_xxx
 ```
 
-## Setup
-
-### 1. Create a Notion Integration
-
-1. Go to [Notion Integrations](https://www.notion.so/my-integrations)
-2. Create a new integration
-3. Note your Client ID and Client Secret
-
-### 2. Configure credentials
+**OAuth (Interactive)**
 
 ```bash
-noon config --client-id <your-client-id> --client-secret <your-client-secret>
-```
-
-Or set environment variables:
-
-```bash
-export NOTION_CLIENT_ID=xxx
-export NOTION_CLIENT_SECRET=xxx
-```
-
-### 3. Authenticate
-
-```bash
+noon config --client-id <id> --client-secret <secret>
 noon auth
 ```
 
-### 4. Install MCP Server
+Get credentials from [Notion Integrations](https://www.notion.so/my-integrations).
+
+## Usage
+
+Register with Claude Code:
 
 ```bash
-# Quick install (globally available)
 eval $(noon mcp install)
+```
 
-# Install to current project only
-eval $(noon mcp install --local)
+Check status:
 
-# Show mcpServers JSON config for manual setup
-noon mcp config
+```bash
+noon status
 ```
 
 ## MCP Tools
 
 | Tool | Description |
 |------|-------------|
-| `noon_search` | Search Notion pages and databases by keyword |
-| `noon_page` | Get Notion page content with nested blocks (cached) |
-| `noon_database` | Get database schema (properties, select options) |
-| `noon_query` | Query database records with filter/sort support |
-| `noon_clear_cache` | Clear all cached Notion pages |
+| `noon_search` | Search pages and databases by keyword |
+| `noon_page` | Get page content with nested blocks (cached) |
+| `noon_database` | Get database schema |
+| `noon_query` | Query database with filter/sort |
+| `noon_clear_cache` | Clear cached pages |
 
-### Usage Flow
+## CLI Reference
 
-1. `noon_search` to find pages or databases (data_source)
-2. For data_source: use `noon_database` to get schema, `noon_query` to search records
-3. For page: use `noon_page` to get content
-
-## CLI Commands
-
-```bash
-noon auth              # Start OAuth flow
-noon logout            # Clear saved credentials
-noon status            # Show authentication status
-noon config            # Configure client credentials
-noon cache clear       # Clear all cached pages
-noon mcp               # Start MCP server
-noon mcp install       # Show claude mcp add command
-noon mcp config        # Show mcpServers JSON config
+```
+noon auth              Start OAuth flow
+noon logout            Clear credentials
+noon status            Show auth status
+noon config            Configure OAuth credentials
+noon cache clear       Clear page cache
+noon mcp               Start MCP server
+noon mcp install       Output claude mcp add command
+noon mcp config        Output mcpServers JSON
 ```
 
-## Configuration
+## Building from Source
 
-Config file location: `~/.config/noon/config.json`
+```bash
+bun install
+bun run compile
+```
+
+For team distribution (users only need to run `noon auth`, no integration setup required):
+
+```bash
+NOTION_CLIENT_ID=xxx NOTION_CLIENT_SECRET=xxx bun run compile
+```
 
 ## License
 
