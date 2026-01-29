@@ -2,6 +2,7 @@
 import { startAuthFlow } from "./auth";
 import { clearToken } from "./config";
 import {
+  handleCache,
   handleConfig,
   handleStatus,
   handleSearch,
@@ -21,6 +22,7 @@ COMMANDS:
   logout            Clear saved credentials
   status            Show authentication status
   config            Configure client credentials
+  cache clear       Clear all cached pages
 
   search <query>    Search pages and databases
   page <id|url>     Get page info and content
@@ -79,6 +81,10 @@ async function main() {
 
       case "status":
         await handleStatus();
+        break;
+
+      case "cache":
+        await handleCache(commandArgs);
         break;
 
       case "search":

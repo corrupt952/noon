@@ -10,6 +10,7 @@ import {
   extractTitle,
   slimQueryResults,
   parseNotionId,
+  clearAllCache,
 } from "./notion";
 import { toonFormatter, markdownFormatter } from "./formatters";
 
@@ -19,9 +20,9 @@ const server = new McpServer({
   version: "0.1.0",
 });
 
-// Tool: search
+// Tool: noon_search
 server.tool(
-  "search",
+  "noon_search",
   "Search Notion pages and databases by keyword. Returns a list of matching items with their IDs and titles. Use noon_page to get full content of a specific page, or noon_query to get records from a database.",
   {
     query: z.string().describe("Search keyword"),
@@ -39,9 +40,9 @@ server.tool(
   }
 );
 
-// Tool: page
+// Tool: noon_page
 server.tool(
-  "page",
+  "noon_page",
   "Get Notion page info and content with nested blocks. Returns the page title and all blocks (paragraphs, headings, lists, code blocks, etc.) including nested content. Results are cached based on last_edited_time. Use format='markdown' for human-readable output.",
   {
     id: z.string().describe("Notion page ID or URL"),
@@ -63,9 +64,9 @@ server.tool(
   }
 );
 
-// Tool: query
+// Tool: noon_query
 server.tool(
-  "query",
+  "noon_query",
   "Query Notion database records. Returns all records in the database with their IDs and titles. Use this to list items in a Notion database (e.g., task lists, project trackers, content calendars).",
   {
     id: z.string().describe("Notion database ID or URL"),
@@ -75,6 +76,22 @@ server.tool(
     const results = await queryDatabase(dbId);
     return {
       content: [{ type: "text", text: toToon(slimQueryResults(results)) }],
+    };
+  }
+);
+
+// Tool: noon_clear_cache
+server.tool(
+  "noon_clear_cache",
+  "Clear all cached Notion pages. Use this when you need to force fresh data from Notion API or to free up disk space.",
+  {},
+  async () => {
+    const count = clearAllCache();
+    const message = count === 0
+      ? "No cache to clear"
+      : `Cleared ${count} cached page(s)`;
+    return {
+      content: [{ type: "text", text: message }],
     };
   }
 );

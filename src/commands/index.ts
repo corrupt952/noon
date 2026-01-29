@@ -1,3 +1,4 @@
+export { handleCache } from "./cache";
 export { handleConfig } from "./config";
 export { handleStatus } from "./status";
 export { handleSearch } from "./search";
