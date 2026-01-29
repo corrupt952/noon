@@ -58,13 +58,24 @@ noon logout            # Clear saved credentials
 noon status            # Show authentication status
 
 # Read operations
-noon search <query>    # Search pages and databases
-noon page <id|url>     # Get page info and content
-noon query <id|url>    # Query database records
+noon search <query>              # Search pages and databases
+noon page <id|url>               # Get page content
+noon database <id|url>           # Get database schema (properties)
+noon query <id|url>              # Query database records
 
-# Options
+# Cache management
+noon cache clear                 # Clear all cached pages
+
+# Options (global)
 --json                 # Output as JSON (default: TOON)
 --help                 # Show help
+
+# Options (page command only)
+--format toon|json|markdown      # Output format
+
+# Options (query command only)
+--filter '{"property":"Status","select":{"equals":"Done"}}'
+--sorts '[{"property":"Created","direction":"descending"}]'
 ```
 
 ## MCP Server
@@ -79,9 +90,11 @@ noon mcp
 
 | Tool | Description |
 |------|-------------|
-| `search` | Search Notion pages and databases by keyword |
-| `page` | Get Notion page info and content |
-| `query` | Query Notion database records |
+| `noon_search` | Search Notion pages and databases by keyword |
+| `noon_page` | Get Notion page content with nested blocks (cached) |
+| `noon_database` | Get database schema (properties, select options) |
+| `noon_query` | Query database records with filter/sort support |
+| `noon_clear_cache` | Clear all cached Notion pages |
 
 ### Claude Code Setup
 

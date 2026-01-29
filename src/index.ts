@@ -25,10 +25,10 @@ COMMANDS:
   config            Configure client credentials
   cache clear       Clear all cached pages
 
-  search <query>    Search pages and databases
-  page <id|url>     Get page info and content
-  database <id|url> Get database schema (properties)
-  query <id|url>    Query database records
+  search <query>              Search pages and databases
+  page <id|url>               Get page content (supports --format)
+  database <id|url>           Get database schema (properties)
+  query <id|url>              Query database records
 
   mcp               Start as MCP server (stdio)
   mcp install       Show claude mcp add command (default: --scope user)
@@ -37,14 +37,17 @@ COMMANDS:
 
 OPTIONS:
   --help, -h        Show this help
-  --format <fmt>    Output format: toon (default), json, markdown
-  --json            Alias for --format json
-  --markdown        Alias for --format markdown
+  --json            Output as JSON (all read commands)
+  --format <fmt>    Output format: toon, json, markdown (page only)
+  --filter <json>   Filter query results (query only)
+  --sorts <json>    Sort query results (query only)
 
 EXAMPLES:
   noon auth
   noon search "Meeting Notes"
-  noon page abc123
+  noon page abc123 --format markdown
+  noon database abc123
+  noon query abc123 --filter '{"property":"Status","select":{"equals":"Done"}}'
   noon mcp
 `;
 
