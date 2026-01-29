@@ -158,7 +158,7 @@ async function waitForCallback(expectedState: string): Promise<string> {
           reject(new Error(`Authorization failed: ${error}`));
           return new Response(
             "<html><body><h1>Authorization Failed</h1><p>You can close this window.</p></body></html>",
-            { headers: { "Content-Type": "text/html" } },
+            { headers: { "Content-Type": "text/html; charset=utf-8" } },
           );
         }
 
@@ -167,7 +167,7 @@ async function waitForCallback(expectedState: string): Promise<string> {
           reject(new Error("Invalid state parameter"));
           return new Response(
             "<html><body><h1>Error</h1><p>Invalid state. You can close this window.</p></body></html>",
-            { headers: { "Content-Type": "text/html" } },
+            { headers: { "Content-Type": "text/html; charset=utf-8" } },
           );
         }
 
@@ -176,7 +176,7 @@ async function waitForCallback(expectedState: string): Promise<string> {
           reject(new Error("No authorization code received"));
           return new Response(
             "<html><body><h1>Error</h1><p>No code received. You can close this window.</p></body></html>",
-            { headers: { "Content-Type": "text/html" } },
+            { headers: { "Content-Type": "text/html; charset=utf-8" } },
           );
         }
 
@@ -184,7 +184,7 @@ async function waitForCallback(expectedState: string): Promise<string> {
         resolve(code);
         return new Response(
           "<html><body><h1>✅ Authorization Successful!</h1><p>You can close this window and return to the terminal.</p></body></html>",
-          { headers: { "Content-Type": "text/html" } },
+          { headers: { "Content-Type": "text/html; charset=utf-8" } },
         );
       },
     });
