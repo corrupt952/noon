@@ -11,6 +11,7 @@ import {
   slimQueryResults,
   parseNotionId,
 } from "./notion";
+import { toonFormatter, markdownFormatter } from "./formatters";
 
 // Create MCP Server
 const server = new McpServer({
@@ -41,21 +42,23 @@ server.tool(
 // Tool: page
 server.tool(
   "page",
-  "Get Notion page info and content with nested blocks. Returns the page title and all blocks (paragraphs, headings, lists, code blocks, etc.) including nested content. Results are cached based on last_edited_time.",
+  "Get Notion page info and content with nested blocks. Returns the page title and all blocks (paragraphs, headings, lists, code blocks, etc.) including nested content. Results are cached based on last_edited_time. Use format='markdown' for human-readable output.",
   {
     id: z.string().describe("Notion page ID or URL"),
+    format: z.enum(["toon", "markdown"]).default("toon").describe("Output format: 'toon' (compact) or 'markdown' (readable)"),
   },
-  async ({ id }) => {
+  async ({ id, format }) => {
     const pageId = parseNotionId(id);
     const result = await getPageWithCache(pageId, slimBlock, extractTitle);
-    const slim = {
-      id: result.page.id,
-      title: result.page.title,
-      url: result.page.url,
+
+    const formatter = format === "markdown" ? markdownFormatter : toonFormatter;
+    const output = formatter.formatPage({
+      page: result.page,
       blocks: result.blocks,
-    };
+    });
+
     return {
-      content: [{ type: "text", text: toToon(slim) }],
+      content: [{ type: "text", text: output }],
     };
   }
 );

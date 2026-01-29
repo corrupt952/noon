@@ -33,7 +33,9 @@ COMMANDS:
 
 OPTIONS:
   --help, -h        Show this help
-  --json            Output as JSON (default: TOON format)
+  --format <fmt>    Output format: toon (default), json, markdown
+  --json            Alias for --format json
+  --markdown        Alias for --format markdown
 
 EXAMPLES:
   noon auth

@@ -1,12 +1,36 @@
-// Extract text content from rich text array
-export function extractRichText(richText: any[]): string {
-  if (!richText || !Array.isArray(richText)) return "";
-  return richText.map((t: any) => t.plain_text).join("");
+// Rich text item from Notion API (slimmed)
+export interface RichTextItem {
+  text: string;
+  href?: string | null;
+  annotations?: {
+    bold?: boolean;
+    italic?: boolean;
+    strikethrough?: boolean;
+    code?: boolean;
+  };
+}
+
+// Extract and slim rich text array
+export function slimRichText(richText: any[]): RichTextItem[] {
+  if (!richText || !Array.isArray(richText)) return [];
+  return richText.map((t: any) => {
+    const item: RichTextItem = { text: t.plain_text };
+    if (t.href) item.href = t.href;
+    const a = t.annotations;
+    if (a && (a.bold || a.italic || a.strikethrough || a.code)) {
+      item.annotations = {};
+      if (a.bold) item.annotations.bold = true;
+      if (a.italic) item.annotations.italic = true;
+      if (a.strikethrough) item.annotations.strikethrough = true;
+      if (a.code) item.annotations.code = true;
+    }
+    return item;
+  });
 }
 
 export interface SlimBlock {
   type: string;
-  text?: string;
+  richText?: RichTextItem[];
   checked?: boolean;
   language?: string;
   url?: string;
@@ -25,21 +49,21 @@ export function slimBlock(block: any): SlimBlock {
     case "heading_3":
     case "quote":
     case "callout":
-      return { ...base, text: extractRichText(block[block.type]?.rich_text) };
+      return { ...base, richText: slimRichText(block[block.type]?.rich_text) };
     case "bulleted_list_item":
     case "numbered_list_item":
     case "to_do":
     case "toggle":
       return {
         ...base,
-        text: extractRichText(block[block.type]?.rich_text),
+        richText: slimRichText(block[block.type]?.rich_text),
         ...(block.type === "to_do" && { checked: block.to_do?.checked })
       };
     case "code":
       return {
         ...base,
         language: block.code?.language,
-        text: extractRichText(block.code?.rich_text)
+        richText: slimRichText(block.code?.rich_text)
       };
     case "image":
     case "video":
