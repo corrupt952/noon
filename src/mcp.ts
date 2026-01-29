@@ -103,7 +103,7 @@ const server = new McpServer({
 // Tool: search
 server.tool(
   "search",
-  "Search Notion pages and databases by keyword. Returns a list of matching items with their IDs, titles, and URLs. Use noon_page to get full content of a specific page, or noon_query to get records from a database.",
+  "Search Notion pages and databases by keyword. Returns a list of matching items with their IDs and titles. Use noon_page to get full content of a specific page, or noon_query to get records from a database.",
   {
     query: z.string().describe("Search keyword"),
   },
@@ -113,7 +113,6 @@ server.tool(
       object: item.object,
       id: item.id,
       title: extractTitle(item),
-      url: item.url,
     }));
     return {
       content: [{ type: "text", text: toToon(slim) }],
@@ -124,7 +123,7 @@ server.tool(
 // Tool: page
 server.tool(
   "page",
-  "Get Notion page info and content. Returns the page title, URL, and all blocks (paragraphs, headings, lists, code blocks, etc.). Use this after noon_search to read the full content of a specific page.",
+  "Get Notion page info and content. Returns the page title and all blocks (paragraphs, headings, lists, code blocks, etc.). Use this after noon_search to read the full content of a specific page.",
   {
     id: z.string().describe("Notion page ID or URL"),
   },
@@ -137,7 +136,6 @@ server.tool(
     const slim = {
       id: page.id,
       title: extractTitle(page),
-      url: (page as any).url,
       blocks: content.results.map(slimBlock),
     };
     return {
@@ -149,7 +147,7 @@ server.tool(
 // Tool: query
 server.tool(
   "query",
-  "Query Notion database records. Returns all records in the database with their IDs, titles, and URLs. Use this to list items in a Notion database (e.g., task lists, project trackers, content calendars).",
+  "Query Notion database records. Returns all records in the database with their IDs and titles. Use this to list items in a Notion database (e.g., task lists, project trackers, content calendars).",
   {
     id: z.string().describe("Notion database ID or URL"),
   },
@@ -159,7 +157,6 @@ server.tool(
     const slim = results.results.map((item: any) => ({
       id: item.id,
       title: extractTitle(item),
-      url: item.url,
     }));
     return {
       content: [{ type: "text", text: toToon(slim) }],

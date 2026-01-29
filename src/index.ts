@@ -223,7 +223,6 @@ function slimSearchResults(results: any): any[] {
     object: item.object,
     id: item.id,
     title: extractTitle(item),
-    url: item.url,
   }));
 }
 
