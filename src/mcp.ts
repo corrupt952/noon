@@ -1,18 +1,18 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
 import { encode as toToon } from "@toon-format/toon";
+import { z } from "zod";
+import { markdownFormatter, toonFormatter } from "./formatters";
 import {
-  search,
-  queryDatabase,
-  getPageWithCache,
-  slimBlock,
-  extractTitle,
-  slimQueryResults,
-  parseNotionId,
   clearAllCache,
+  extractTitle,
+  getPageWithCache,
+  parseNotionId,
+  queryDatabase,
+  search,
+  slimBlock,
+  slimQueryResults,
 } from "./notion";
-import { toonFormatter, markdownFormatter } from "./formatters";
 
 // Create MCP Server
 const server = new McpServer({
@@ -37,7 +37,7 @@ server.tool(
     return {
       content: [{ type: "text", text: toToon(slim) }],
     };
-  }
+  },
 );
 
 // Tool: noon_page
@@ -46,7 +46,10 @@ server.tool(
   "Get Notion page info and content with nested blocks. Returns the page title and all blocks (paragraphs, headings, lists, code blocks, etc.) including nested content. Results are cached based on last_edited_time. Use format='markdown' for human-readable output.",
   {
     id: z.string().describe("Notion page ID or URL"),
-    format: z.enum(["toon", "markdown"]).default("toon").describe("Output format: 'toon' (compact) or 'markdown' (readable)"),
+    format: z
+      .enum(["toon", "markdown"])
+      .default("toon")
+      .describe("Output format: 'toon' (compact) or 'markdown' (readable)"),
   },
   async ({ id, format }) => {
     const pageId = parseNotionId(id);
@@ -61,7 +64,7 @@ server.tool(
     return {
       content: [{ type: "text", text: output }],
     };
-  }
+  },
 );
 
 // Tool: noon_query
@@ -77,7 +80,7 @@ server.tool(
     return {
       content: [{ type: "text", text: toToon(slimQueryResults(results)) }],
     };
-  }
+  },
 );
 
 // Tool: noon_clear_cache
@@ -87,13 +90,12 @@ server.tool(
   {},
   async () => {
     const count = clearAllCache();
-    const message = count === 0
-      ? "No cache to clear"
-      : `Cleared ${count} cached page(s)`;
+    const message =
+      count === 0 ? "No cache to clear" : `Cleared ${count} cached page(s)`;
     return {
       content: [{ type: "text", text: message }],
     };
-  }
+  },
 );
 
 // Start MCP server

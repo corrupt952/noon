@@ -10,7 +10,10 @@ export interface SlimPage {
 export function extractTitle(item: any): string {
   // For pages
   if (item.properties?.title?.title) {
-    return item.properties.title.title.map((t: any) => t.plain_text).join("") || "(untitled)";
+    return (
+      item.properties.title.title.map((t: any) => t.plain_text).join("") ||
+      "(untitled)"
+    );
   }
   // For databases
   if (item.title) {
@@ -20,7 +23,9 @@ export function extractTitle(item: any): string {
   if (item.properties) {
     for (const prop of Object.values(item.properties) as any[]) {
       if (prop.type === "title" && prop.title) {
-        return prop.title.map((t: any) => t.plain_text).join("") || "(untitled)";
+        return (
+          prop.title.map((t: any) => t.plain_text).join("") || "(untitled)"
+        );
       }
     }
   }

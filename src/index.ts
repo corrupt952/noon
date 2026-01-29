@@ -1,15 +1,15 @@
 #!/usr/bin/env bun
 import { startAuthFlow } from "./auth";
-import { clearToken } from "./config";
 import {
   handleCache,
   handleConfig,
-  handleStatus,
-  handleSearch,
+  handleMcp,
   handlePage,
   handleQuery,
-  handleMcp,
+  handleSearch,
+  handleStatus,
 } from "./commands";
+import { clearToken } from "./config";
 
 const HELP = `
 noon - Lightweight Notion CLI
@@ -55,7 +55,7 @@ async function main() {
   }
 
   // First positional argument is the command
-  const command = args.find(a => !a.startsWith("-"));
+  const command = args.find((a) => !a.startsWith("-"));
   if (!command) {
     console.log(HELP);
     return;

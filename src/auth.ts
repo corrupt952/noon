@@ -1,4 +1,4 @@
-import { saveToken, loadConfig, saveConfig, type TokenData } from "./config";
+import { loadConfig, saveConfig, saveToken, type TokenData } from "./config";
 
 const NOTION_AUTH_URL = "https://api.notion.com/v1/oauth/authorize";
 const NOTION_TOKEN_URL = "https://api.notion.com/v1/oauth/token";
@@ -11,7 +11,8 @@ const EMBEDDED_CLIENT_SECRET = process.env.NOTION_CLIENT_SECRET ?? "";
 
 // PKCE utilities
 function generateRandomString(length: number): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
   const array = new Uint8Array(length);
   crypto.getRandomValues(array);
   return Array.from(array, (byte) => chars[byte % chars.length]).join("");
@@ -31,10 +32,16 @@ export function isCredentialsEmbedded(): boolean {
   return !!(EMBEDDED_CLIENT_ID && EMBEDDED_CLIENT_SECRET);
 }
 
-export function getClientCredentials(): { clientId: string; clientSecret: string } | null {
+export function getClientCredentials(): {
+  clientId: string;
+  clientSecret: string;
+} | null {
   // 1. Build-time embedded credentials (highest priority for distribution)
   if (EMBEDDED_CLIENT_ID && EMBEDDED_CLIENT_SECRET) {
-    return { clientId: EMBEDDED_CLIENT_ID, clientSecret: EMBEDDED_CLIENT_SECRET };
+    return {
+      clientId: EMBEDDED_CLIENT_ID,
+      clientSecret: EMBEDDED_CLIENT_SECRET,
+    };
   }
 
   // 2. Runtime environment variables (for development/CI)
@@ -53,7 +60,10 @@ export function getClientCredentials(): { clientId: string; clientSecret: string
   return null;
 }
 
-export async function setupClientCredentials(clientId: string, clientSecret: string): Promise<void> {
+export async function setupClientCredentials(
+  clientId: string,
+  clientSecret: string,
+): Promise<void> {
   const config = loadConfig();
   config.client_id = clientId;
   config.client_secret = clientSecret;
@@ -65,7 +75,7 @@ export async function startAuthFlow(): Promise<TokenData> {
   if (!credentials) {
     throw new Error(
       "Client credentials not configured.\n" +
-      "Run: notion-cli config --client-id <id> --client-secret <secret>"
+        "Run: notion-cli config --client-id <id> --client-secret <secret>",
     );
   }
 
@@ -87,8 +97,12 @@ export async function startAuthFlow(): Promise<TokenData> {
   console.log(`If browser doesn't open, visit:\n${authUrl.toString()}\n`);
 
   // Open browser
-  const openCommand = process.platform === "darwin" ? "open" :
-                      process.platform === "win32" ? "start" : "xdg-open";
+  const openCommand =
+    process.platform === "darwin"
+      ? "open"
+      : process.platform === "win32"
+        ? "start"
+        : "xdg-open";
   Bun.spawn([openCommand, authUrl.toString()]);
 
   // Start local server to receive callback
@@ -125,7 +139,7 @@ async function waitForCallback(expectedState: string): Promise<string> {
           reject(new Error(`Authorization failed: ${error}`));
           return new Response(
             "<html><body><h1>Authorization Failed</h1><p>You can close this window.</p></body></html>",
-            { headers: { "Content-Type": "text/html" } }
+            { headers: { "Content-Type": "text/html" } },
           );
         }
 
@@ -134,7 +148,7 @@ async function waitForCallback(expectedState: string): Promise<string> {
           reject(new Error("Invalid state parameter"));
           return new Response(
             "<html><body><h1>Error</h1><p>Invalid state. You can close this window.</p></body></html>",
-            { headers: { "Content-Type": "text/html" } }
+            { headers: { "Content-Type": "text/html" } },
           );
         }
 
@@ -143,7 +157,7 @@ async function waitForCallback(expectedState: string): Promise<string> {
           reject(new Error("No authorization code received"));
           return new Response(
             "<html><body><h1>Error</h1><p>No code received. You can close this window.</p></body></html>",
-            { headers: { "Content-Type": "text/html" } }
+            { headers: { "Content-Type": "text/html" } },
           );
         }
 
@@ -151,18 +165,23 @@ async function waitForCallback(expectedState: string): Promise<string> {
         resolve(code);
         return new Response(
           "<html><body><h1>✅ Authorization Successful!</h1><p>You can close this window and return to the terminal.</p></body></html>",
-          { headers: { "Content-Type": "text/html" } }
+          { headers: { "Content-Type": "text/html" } },
         );
       },
     });
 
-    console.log(`Waiting for authorization on http://localhost:${REDIRECT_PORT}...`);
+    console.log(
+      `Waiting for authorization on http://localhost:${REDIRECT_PORT}...`,
+    );
 
     // Timeout after 5 minutes
-    timeoutId = setTimeout(() => {
-      cleanup();
-      reject(new Error("Authorization timeout"));
-    }, 5 * 60 * 1000);
+    timeoutId = setTimeout(
+      () => {
+        cleanup();
+        reject(new Error("Authorization timeout"));
+      },
+      5 * 60 * 1000,
+    );
   });
 }
 
@@ -170,9 +189,11 @@ async function exchangeCodeForToken(
   code: string,
   codeVerifier: string,
   clientId: string,
-  clientSecret: string
+  clientSecret: string,
 ): Promise<TokenData> {
-  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+  const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString(
+    "base64",
+  );
 
   const response = await fetch(NOTION_TOKEN_URL, {
     method: "POST",
@@ -198,25 +219,33 @@ async function exchangeCodeForToken(
   const token: TokenData = {
     access_token: data.access_token,
     refresh_token: data.refresh_token,
-    expires_at: data.expires_in ? Date.now() + data.expires_in * 1000 : undefined,
+    expires_at: data.expires_in
+      ? Date.now() + data.expires_in * 1000
+      : undefined,
     workspace_id: data.workspace_id,
     workspace_name: data.workspace_name,
   };
 
   saveToken(token);
-  console.log(`\n✅ Authenticated with workspace: ${token.workspace_name || token.workspace_id}`);
+  console.log(
+    `\n✅ Authenticated with workspace: ${token.workspace_name || token.workspace_id}`,
+  );
 
   return token;
 }
 
-export async function refreshToken(refreshTokenValue: string): Promise<TokenData> {
+export async function refreshToken(
+  refreshTokenValue: string,
+): Promise<TokenData> {
   const credentials = getClientCredentials();
   if (!credentials) {
     throw new Error("Client credentials not configured");
   }
 
   const { clientId, clientSecret } = credentials;
-  const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+  const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString(
+    "base64",
+  );
 
   const response = await fetch(NOTION_TOKEN_URL, {
     method: "POST",
@@ -240,7 +269,9 @@ export async function refreshToken(refreshTokenValue: string): Promise<TokenData
   const token: TokenData = {
     access_token: data.access_token,
     refresh_token: data.refresh_token,
-    expires_at: data.expires_in ? Date.now() + data.expires_in * 1000 : undefined,
+    expires_at: data.expires_in
+      ? Date.now() + data.expires_in * 1000
+      : undefined,
     workspace_id: data.workspace_id,
     workspace_name: data.workspace_name,
   };

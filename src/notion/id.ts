@@ -12,7 +12,9 @@ export function parseNotionId(input: string): string {
 
     // ID is the last 32 characters (without dashes) at the end of the segment
     // Or the segment might be just the ID
-    const match = lastSegment.match(/([a-f0-9]{32})$|([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i);
+    const match = lastSegment.match(
+      /([a-f0-9]{32})$|([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i,
+    );
     if (match) {
       return (match[1] || match[2]).replace(/-/g, "");
     }

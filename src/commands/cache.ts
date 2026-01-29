@@ -1,7 +1,7 @@
 import { clearAllCache } from "../notion/cache";
 
 export async function handleCache(args: string[]): Promise<void> {
-  const subcommand = args.find(a => !a.startsWith("-"));
+  const subcommand = args.find((a) => !a.startsWith("-"));
 
   if (subcommand === "clear") {
     const count = clearAllCache();

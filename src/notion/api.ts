@@ -1,9 +1,9 @@
 import { Client } from "@notionhq/client";
 import pLimit from "p-limit";
-import { getToken, isTokenExpired, type TokenData } from "../config";
 import { refreshToken, startAuthFlow } from "../auth";
-import { getCache, saveCache, isCacheValid, type CachedPage } from "./cache";
+import { getToken, isTokenExpired, type TokenData } from "../config";
 import type { SlimBlock } from "./block";
+import { type CachedPage, getCache, isCacheValid, saveCache } from "./cache";
 import type { SlimPage } from "./page";
 
 let notionClient: Client | null = null;
@@ -69,7 +69,7 @@ export async function getDatabase(databaseId: string) {
 export async function queryDatabase(
   databaseId: string,
   filter?: object,
-  sorts?: object[]
+  sorts?: object[],
 ) {
   const client = await getClient();
   const params: Parameters<typeof client.databases.query>[0] = {
@@ -98,7 +98,7 @@ export async function getBlockChildren(blockId: string) {
 export async function getAllBlockChildren(blockId: string): Promise<any[]> {
   const client = await getClient();
   const allBlocks: any[] = [];
-  let cursor: string | undefined = undefined;
+  let cursor: string | undefined;
 
   do {
     const response = await client.blocks.children.list({
@@ -106,7 +106,9 @@ export async function getAllBlockChildren(blockId: string): Promise<any[]> {
       start_cursor: cursor,
     });
     allBlocks.push(...response.results);
-    cursor = response.has_more ? response.next_cursor ?? undefined : undefined;
+    cursor = response.has_more
+      ? (response.next_cursor ?? undefined)
+      : undefined;
   } while (cursor);
 
   return allBlocks;
@@ -115,7 +117,7 @@ export async function getAllBlockChildren(blockId: string): Promise<any[]> {
 // Fetch blocks recursively with rate limiting (preserves order)
 export async function fetchBlocksRecursive(
   blockId: string,
-  slimBlockFn: (block: any) => SlimBlock
+  slimBlockFn: (block: any) => SlimBlock,
 ): Promise<SlimBlock[]> {
   async function fetchChildren(parentId: string): Promise<SlimBlock[]> {
     const blocks = await limit(() => getAllBlockChildren(parentId));
@@ -125,12 +127,16 @@ export async function fetchBlocksRecursive(
       blocks.map(async (block) => {
         const slimBlock = slimBlockFn(block);
 
-        if (block.has_children && block.type !== "child_page" && block.type !== "child_database") {
+        if (
+          block.has_children &&
+          block.type !== "child_page" &&
+          block.type !== "child_database"
+        ) {
           slimBlock.children = await fetchChildren(block.id);
         }
 
         return slimBlock;
-      })
+      }),
     );
 
     return processedBlocks;
@@ -143,7 +149,7 @@ export async function fetchBlocksRecursive(
 export async function getPageWithCache(
   pageId: string,
   slimBlockFn: (block: any) => SlimBlock,
-  extractTitleFn: (page: any) => string
+  extractTitleFn: (page: any) => string,
 ): Promise<{ page: SlimPage; blocks: SlimBlock[]; fromCache: boolean }> {
   // Step 1: Get page metadata
   const page = await getPage(pageId);

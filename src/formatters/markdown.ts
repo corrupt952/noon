@@ -1,4 +1,4 @@
-import type { SlimBlock, RichTextItem } from "../notion/block";
+import type { RichTextItem, SlimBlock } from "../notion/block";
 import type { PageData, PageFormatter } from "./index";
 
 // Convert rich text item to markdown with annotations
@@ -91,11 +91,11 @@ function blockToMarkdown(block: SlimBlock, indent: string = ""): string {
 
   // Handle nested children
   if (block.children && block.children.length > 0) {
-    const childIndent = indent + "  ";
+    const childIndent = `${indent}  `;
     const children = block.children
-      .map(child => blockToMarkdown(child, childIndent))
+      .map((child) => blockToMarkdown(child, childIndent))
       .join("\n");
-    result += "\n" + children;
+    result += `\n${children}`;
   }
 
   return result;
@@ -103,7 +103,7 @@ function blockToMarkdown(block: SlimBlock, indent: string = ""): string {
 
 // Convert blocks array to markdown
 function blocksToMarkdown(blocks: SlimBlock[]): string {
-  return blocks.map(block => blockToMarkdown(block)).join("\n\n");
+  return blocks.map((block) => blockToMarkdown(block)).join("\n\n");
 }
 
 export const markdownFormatter: PageFormatter = {

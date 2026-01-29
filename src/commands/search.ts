@@ -1,9 +1,9 @@
-import { output } from "../output";
 import { search, slimSearchResults } from "../notion";
+import { output } from "../output";
 
 export async function handleSearch(args: string[]): Promise<void> {
   const json = args.includes("--json");
-  const query = args.find(a => !a.startsWith("-"));
+  const query = args.find((a) => !a.startsWith("-"));
 
   if (!query) {
     console.error("Usage: noon search <query> [--json]");

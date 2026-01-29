@@ -1,5 +1,5 @@
-import { getToken } from "../config";
 import { getClientCredentials, isCredentialsEmbedded } from "../auth";
+import { getToken } from "../config";
 
 export async function handleStatus(): Promise<void> {
   const token = getToken();
@@ -9,15 +9,21 @@ export async function handleStatus(): Promise<void> {
   console.log("=== Notion CLI Status ===\n");
 
   if (credentials) {
-    console.log(`✅ Client credentials configured ${embedded ? "(embedded)" : "(from config)"}`);
+    console.log(
+      `✅ Client credentials configured ${embedded ? "(embedded)" : "(from config)"}`,
+    );
   } else {
     console.log("❌ Client credentials not configured");
-    console.log("   Run: noon config --client-id <id> --client-secret <secret>");
+    console.log(
+      "   Run: noon config --client-id <id> --client-secret <secret>",
+    );
   }
 
   if (token) {
     console.log("✅ Authenticated");
-    console.log(`   Workspace: ${token.workspace_name || token.workspace_id || "unknown"}`);
+    console.log(
+      `   Workspace: ${token.workspace_name || token.workspace_id || "unknown"}`,
+    );
     if (token.expires_at) {
       const expiresIn = Math.round((token.expires_at - Date.now()) / 1000 / 60);
       if (expiresIn > 0) {

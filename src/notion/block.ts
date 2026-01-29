@@ -57,20 +57,21 @@ export function slimBlock(block: any): SlimBlock {
       return {
         ...base,
         richText: slimRichText(block[block.type]?.rich_text),
-        ...(block.type === "to_do" && { checked: block.to_do?.checked })
+        ...(block.type === "to_do" && { checked: block.to_do?.checked }),
       };
     case "code":
       return {
         ...base,
         language: block.code?.language,
-        richText: slimRichText(block.code?.rich_text)
+        richText: slimRichText(block.code?.rich_text),
       };
     case "image":
     case "video":
     case "file":
-    case "pdf":
+    case "pdf": {
       const media = block[block.type];
       return { ...base, url: media?.file?.url || media?.external?.url || "" };
+    }
     case "bookmark":
     case "embed":
       return { ...base, url: block[block.type]?.url || "" };

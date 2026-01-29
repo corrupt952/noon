@@ -1,4 +1,4 @@
-import { parseArgs } from "util";
+import { parseArgs } from "node:util";
 import { setupClientCredentials } from "../auth";
 import { loadConfig } from "../config";
 
@@ -17,7 +17,11 @@ export async function handleConfig(args: string[]): Promise<void> {
   } else {
     const config = loadConfig();
     console.log("Current configuration:");
-    console.log(`  Client ID: ${config.client_id ? "***" + config.client_id.slice(-4) : "(not set)"}`);
-    console.log(`  Client Secret: ${config.client_secret ? "***" + config.client_secret.slice(-4) : "(not set)"}`);
+    console.log(
+      `  Client ID: ${config.client_id ? `***${config.client_id.slice(-4)}` : "(not set)"}`,
+    );
+    console.log(
+      `  Client Secret: ${config.client_secret ? `***${config.client_secret.slice(-4)}` : "(not set)"}`,
+    );
   }
 }

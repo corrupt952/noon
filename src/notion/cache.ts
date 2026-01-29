@@ -1,6 +1,14 @@
-import { homedir } from "os";
-import { join } from "path";
-import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, readdirSync, rmSync } from "fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import type { SlimBlock } from "./block";
 import type { SlimPage } from "./page";
 
@@ -54,7 +62,10 @@ export function invalidateCache(pageId: string): void {
   }
 }
 
-export function isCacheValid(cache: CachedPage, currentLastEditedTime: string): boolean {
+export function isCacheValid(
+  cache: CachedPage,
+  currentLastEditedTime: string,
+): boolean {
   return cache.lastEditedTime === currentLastEditedTime;
 }
 
@@ -63,7 +74,7 @@ export function clearAllCache(): number {
     return 0;
   }
 
-  const files = readdirSync(CACHE_DIR).filter(f => f.endsWith(".json"));
+  const files = readdirSync(CACHE_DIR).filter((f) => f.endsWith(".json"));
   for (const file of files) {
     rmSync(join(CACHE_DIR, file));
   }

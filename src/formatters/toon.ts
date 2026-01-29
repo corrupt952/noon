@@ -1,11 +1,11 @@
 import { encode as toToon } from "@toon-format/toon";
-import type { SlimBlock, RichTextItem } from "../notion/block";
+import type { RichTextItem, SlimBlock } from "../notion/block";
 import type { PageData, PageFormatter } from "./index";
 
 // Convert rich text to plain text
 function richTextToPlain(richText?: RichTextItem[]): string {
   if (!richText) return "";
-  return richText.map(item => item.text).join("");
+  return richText.map((item) => item.text).join("");
 }
 
 // Convert SlimBlock to toon-friendly format (plain text only)

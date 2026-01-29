@@ -1,6 +1,11 @@
-import { parseNotionId, getPageWithCache, slimBlock, extractTitle } from "../notion";
-import { toonFormatter, jsonFormatter, markdownFormatter } from "../formatters";
 import type { PageFormatter } from "../formatters";
+import { jsonFormatter, markdownFormatter, toonFormatter } from "../formatters";
+import {
+  extractTitle,
+  getPageWithCache,
+  parseNotionId,
+  slimBlock,
+} from "../notion";
 
 type FormatType = "toon" | "json" | "markdown";
 
@@ -10,7 +15,6 @@ function getFormatter(format: FormatType): PageFormatter {
       return jsonFormatter;
     case "markdown":
       return markdownFormatter;
-    case "toon":
     default:
       return toonFormatter;
   }
@@ -32,10 +36,15 @@ function parseFormat(args: string[]): FormatType {
 
 export async function handlePage(args: string[]): Promise<void> {
   const format = parseFormat(args);
-  const input = args.find(a => !a.startsWith("-") && a !== "toon" && a !== "json" && a !== "markdown");
+  const input = args.find(
+    (a) =>
+      !a.startsWith("-") && a !== "toon" && a !== "json" && a !== "markdown",
+  );
 
   if (!input) {
-    console.error("Usage: noon page <page-id|url> [--format toon|json|markdown]");
+    console.error(
+      "Usage: noon page <page-id|url> [--format toon|json|markdown]",
+    );
     process.exit(1);
   }
 
@@ -43,8 +52,10 @@ export async function handlePage(args: string[]): Promise<void> {
   const result = await getPageWithCache(pageId, slimBlock, extractTitle);
 
   const formatter = getFormatter(format);
-  console.log(formatter.formatPage({
-    page: result.page,
-    blocks: result.blocks,
-  }));
+  console.log(
+    formatter.formatPage({
+      page: result.page,
+      blocks: result.blocks,
+    }),
+  );
 }
