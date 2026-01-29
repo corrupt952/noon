@@ -1,15 +1,10 @@
 import { Client } from "@notionhq/client";
 import pLimit from "p-limit";
-import { getToken, isTokenExpired, type TokenData } from "./config";
-import { refreshToken, startAuthFlow } from "./auth";
-import {
-  getCache,
-  saveCache,
-  isCacheValid,
-  type SlimBlockData,
-  type SlimPageData,
-  type CachedPage,
-} from "./cache";
+import { getToken, isTokenExpired, type TokenData } from "../config";
+import { refreshToken, startAuthFlow } from "../auth";
+import { getCache, saveCache, isCacheValid, type CachedPage } from "./cache";
+import type { SlimBlock } from "./block";
+import type { SlimPage } from "./page";
 
 let notionClient: Client | null = null;
 
@@ -120,9 +115,9 @@ export async function getAllBlockChildren(blockId: string): Promise<any[]> {
 // Fetch blocks recursively with rate limiting (preserves order)
 export async function fetchBlocksRecursive(
   blockId: string,
-  slimBlockFn: (block: any) => SlimBlockData
-): Promise<SlimBlockData[]> {
-  async function fetchChildren(parentId: string): Promise<SlimBlockData[]> {
+  slimBlockFn: (block: any) => SlimBlock
+): Promise<SlimBlock[]> {
+  async function fetchChildren(parentId: string): Promise<SlimBlock[]> {
     const blocks = await limit(() => getAllBlockChildren(parentId));
 
     // Process all blocks in parallel while preserving order
@@ -147,9 +142,9 @@ export async function fetchBlocksRecursive(
 // Get page with caching support
 export async function getPageWithCache(
   pageId: string,
-  slimBlockFn: (block: any) => SlimBlockData,
-  extractTitle: (page: any) => string
-): Promise<{ page: SlimPageData; blocks: SlimBlockData[]; fromCache: boolean }> {
+  slimBlockFn: (block: any) => SlimBlock,
+  extractTitleFn: (page: any) => string
+): Promise<{ page: SlimPage; blocks: SlimBlock[]; fromCache: boolean }> {
   // Step 1: Get page metadata
   const page = await getPage(pageId);
   const lastEditedTime = (page as any).last_edited_time;
@@ -168,9 +163,9 @@ export async function getPageWithCache(
   const blocks = await fetchBlocksRecursive(pageId, slimBlockFn);
 
   // Step 4: Build slim page data
-  const slimPage: SlimPageData = {
+  const slimPage: SlimPage = {
     id: page.id,
-    title: extractTitle(page),
+    title: extractTitleFn(page),
     url: (page as any).url,
   };
 
@@ -190,4 +185,3 @@ export async function getPageWithCache(
     fromCache: false,
   };
 }
-

@@ -1,30 +1,15 @@
 import { homedir } from "os";
 import { join } from "path";
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from "fs";
-
-export interface SlimBlockData {
-  id: string;
-  type: string;
-  text?: string;
-  checked?: boolean;
-  language?: string;
-  url?: string;
-  title?: string;
-  children?: SlimBlockData[];
-}
-
-export interface SlimPageData {
-  id: string;
-  title: string;
-  url: string;
-}
+import type { SlimBlock } from "./block";
+import type { SlimPage } from "./page";
 
 export interface CachedPage {
   pageId: string;
   lastEditedTime: string;
   fetchedAt: number;
-  page: SlimPageData;
-  blocks: SlimBlockData[];
+  page: SlimPage;
+  blocks: SlimBlock[];
 }
 
 const CACHE_DIR = join(homedir(), ".cache", "noon", "pages");

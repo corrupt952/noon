@@ -2,28 +2,15 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { encode as toToon } from "@toon-format/toon";
-import * as api from "./api";
-import { slimBlock, extractTitle } from "./index";
-
-// Helper: Parse Notion ID from URL or ID string
-function parseNotionId(input: string): string {
-  if (input.startsWith("http")) {
-    const url = new URL(input);
-    const segments = url.pathname.split("/").filter(Boolean);
-    const lastSegment = segments[segments.length - 1] || "";
-    const match = lastSegment.match(/([a-f0-9]{32})$|([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i);
-    if (match) {
-      return (match[1] || match[2]).replace(/-/g, "");
-    }
-    const cleanSegment = lastSegment.replace(/-/g, "");
-    const idMatch = cleanSegment.match(/([a-f0-9]{32})$/i);
-    if (idMatch) {
-      return idMatch[1];
-    }
-    throw new Error(`Could not extract Notion ID from URL: ${input}`);
-  }
-  return input.replace(/-/g, "");
-}
+import {
+  search,
+  queryDatabase,
+  getPageWithCache,
+  slimBlock,
+  extractTitle,
+  slimQueryResults,
+  parseNotionId,
+} from "./notion";
 
 // Create MCP Server
 const server = new McpServer({
@@ -39,7 +26,7 @@ server.tool(
     query: z.string().describe("Search keyword"),
   },
   async ({ query }) => {
-    const results = await api.search(query);
+    const results = await search(query);
     const slim = results.results.map((item: any) => ({
       object: item.object,
       id: item.id,
@@ -60,7 +47,7 @@ server.tool(
   },
   async ({ id }) => {
     const pageId = parseNotionId(id);
-    const result = await api.getPageWithCache(pageId, slimBlock, extractTitle);
+    const result = await getPageWithCache(pageId, slimBlock, extractTitle);
     const slim = {
       id: result.page.id,
       title: result.page.title,
@@ -82,13 +69,9 @@ server.tool(
   },
   async ({ id }) => {
     const dbId = parseNotionId(id);
-    const results = await api.queryDatabase(dbId);
-    const slim = results.results.map((item: any) => ({
-      id: item.id,
-      title: extractTitle(item),
-    }));
+    const results = await queryDatabase(dbId);
     return {
-      content: [{ type: "text", text: toToon(slim) }],
+      content: [{ type: "text", text: toToon(slimQueryResults(results)) }],
     };
   }
 );
