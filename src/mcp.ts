@@ -30,7 +30,7 @@ const server = new McpServer({
 // Tool: noon_search
 server.tool(
   "noon_search",
-  "Search Notion pages and databases by keyword. Returns a list of matching items with their IDs and titles. Use noon_page to get full content of a specific page, or noon_query to get records from a database.",
+  "Search Notion pages and databases by keyword. Returns a list of matching items with their IDs and titles. Use noon_page to get full content of a specific page. For data_source objects (databases), use parent_id (not id) with noon_database or noon_query.",
   {
     query: z.string().describe("Search keyword"),
   },
@@ -90,14 +90,14 @@ server.tool(
 // Tool: noon_query
 server.tool(
   "noon_query",
-  "Query Notion database records with optional filtering and sorting. Returns records with IDs, titles, and URLs. Use noon_database first to get the schema (property names, types, select options) for constructing filters.",
+  "Query Notion database records with optional filtering and sorting. Use this for searching within a specific database. Returns records with IDs, titles, and URLs. Use noon_database first to get the schema (property names, types, select options) for constructing filters.",
   {
     id: z.string().describe("Notion database ID or URL"),
     filter: z
       .string()
       .optional()
       .describe(
-        'Filter JSON. Examples: {"property":"Status","select":{"equals":"Done"}}, {"property":"Tags","multi_select":{"contains":"Important"}}, {"and":[...]}',
+        'Filter JSON. Examples: {"property":"Title","title":{"contains":"keyword"}} for text search, {"property":"Status","select":{"equals":"Done"}}, {"property":"Tags","multi_select":{"contains":"Important"}}, {"and":[...]}',
       ),
     sorts: z
       .string()
