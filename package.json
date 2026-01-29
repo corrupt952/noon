@@ -1,13 +1,13 @@
 {
   "name": "noon",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "bin": {
     "noon": "./dist/index.js"
   },
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist --target bun",
-    "compile": "bun build --compile src/index.ts --outfile noon --define \"process.env.NOTION_CLIENT_ID='$NOTION_CLIENT_ID'\" --define \"process.env.NOTION_CLIENT_SECRET='$NOTION_CLIENT_SECRET'\"",
+    "build": "bun build src/index.ts --outdir dist --target bun --define \"PKG_VERSION='$(jq -r .version package.json)'\"",
+    "compile": "bun build --compile src/index.ts --outfile noon --define \"PKG_VERSION='$(jq -r .version package.json)'\" --define \"process.env.NOTION_CLIENT_ID='$NOTION_CLIENT_ID'\" --define \"process.env.NOTION_CLIENT_SECRET='$NOTION_CLIENT_SECRET'\"",
     "dev": "bun run src/index.ts",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",

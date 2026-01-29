@@ -20,10 +20,12 @@ import {
   slimSearchResults,
 } from "./notion";
 
+declare const PKG_VERSION: string;
+
 // Create MCP Server
 const server = new McpServer({
   name: "noon",
-  version: "0.1.0",
+  version: PKG_VERSION,
 });
 
 // Tool: noon_search

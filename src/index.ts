@@ -3,6 +3,8 @@ import { startAuthFlow } from "./auth";
 import { handleCache, handleConfig, handleMcp, handleStatus } from "./commands";
 import { clearToken } from "./config";
 
+declare const PKG_VERSION: string;
+
 const HELP = `
 noon - Notion MCP Server
 
@@ -23,6 +25,7 @@ COMMANDS:
 
 OPTIONS:
   --help, -h        Show this help
+  --version, -v     Show version
 
 EXAMPLES:
   noon auth
@@ -32,6 +35,11 @@ EXAMPLES:
 
 async function main() {
   const args = process.argv.slice(2);
+
+  if (args.includes("--version") || args.includes("-v")) {
+    console.log(PKG_VERSION);
+    return;
+  }
 
   if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
     console.log(HELP);
