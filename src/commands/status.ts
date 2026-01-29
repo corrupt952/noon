@@ -1,17 +1,21 @@
-import { getClientCredentials, isCredentialsEmbedded } from "../auth";
+import { getClientCredentials, getCredentialsSource } from "../auth";
 import { getToken } from "../config";
+
+const SOURCE_LABELS: Record<string, string> = {
+  embedded: "embedded",
+  env: "from env",
+  config: "from config",
+};
 
 export async function handleStatus(): Promise<void> {
   const token = getToken();
   const credentials = getClientCredentials();
-  const embedded = isCredentialsEmbedded();
+  const source = getCredentialsSource();
 
   console.log("=== Notion CLI Status ===\n");
 
-  if (credentials) {
-    console.log(
-      `✅ Client credentials configured ${embedded ? "(embedded)" : "(from config)"}`,
-    );
+  if (credentials && source) {
+    console.log(`✅ Client credentials configured (${SOURCE_LABELS[source]})`);
   } else {
     console.log("❌ Client credentials not configured");
     console.log(

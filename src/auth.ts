@@ -5,9 +5,16 @@ const NOTION_TOKEN_URL = "https://api.notion.com/v1/oauth/token";
 const REDIRECT_PORT = 9876;
 const REDIRECT_URI = `http://localhost:${REDIRECT_PORT}/callback`;
 
-// Build-time embedded credentials (injected via environment variables during build)
-const EMBEDDED_CLIENT_ID = process.env.NOTION_CLIENT_ID ?? "";
-const EMBEDDED_CLIENT_SECRET = process.env.NOTION_CLIENT_SECRET ?? "";
+// Build-time embedded credentials (injected via --define during compile)
+// These are replaced with literal strings at build time, defaulting to empty
+declare const __EMBEDDED_CLIENT_ID__: string | undefined;
+declare const __EMBEDDED_CLIENT_SECRET__: string | undefined;
+const EMBEDDED_CLIENT_ID =
+  typeof __EMBEDDED_CLIENT_ID__ !== "undefined" ? __EMBEDDED_CLIENT_ID__ : "";
+const EMBEDDED_CLIENT_SECRET =
+  typeof __EMBEDDED_CLIENT_SECRET__ !== "undefined"
+    ? __EMBEDDED_CLIENT_SECRET__
+    : "";
 
 // PKCE utilities
 function generateRandomString(length: number): string {
@@ -28,8 +35,20 @@ async function generateCodeChallenge(verifier: string): Promise<string> {
     .replace(/=+$/, "");
 }
 
-export function isCredentialsEmbedded(): boolean {
-  return !!(EMBEDDED_CLIENT_ID && EMBEDDED_CLIENT_SECRET);
+export type CredentialsSource = "embedded" | "env" | "config" | null;
+
+export function getCredentialsSource(): CredentialsSource {
+  if (EMBEDDED_CLIENT_ID && EMBEDDED_CLIENT_SECRET) {
+    return "embedded";
+  }
+  if (process.env.NOTION_CLIENT_ID && process.env.NOTION_CLIENT_SECRET) {
+    return "env";
+  }
+  const config = loadConfig();
+  if (config.client_id && config.client_secret) {
+    return "config";
+  }
+  return null;
 }
 
 export function getClientCredentials(): {
