@@ -2,6 +2,16 @@ import { encode as toToon } from "@toon-format/toon";
 import type { RichTextItem, SlimBlock } from "../notion/block";
 import type { PageData, PageFormatter } from "./index";
 
+interface ToonBlock {
+  type: string;
+  text?: string;
+  checked?: boolean;
+  language?: string;
+  url?: string;
+  title?: string;
+  children?: ToonBlock[];
+}
+
 // Convert rich text to plain text
 function richTextToPlain(richText?: RichTextItem[]): string {
   if (!richText) return "";
@@ -9,29 +19,29 @@ function richTextToPlain(richText?: RichTextItem[]): string {
 }
 
 // Convert SlimBlock to toon-friendly format (plain text only)
-function blockToToon(block: SlimBlock): any {
-  const base: any = { type: block.type };
+function blockToToon(block: SlimBlock): ToonBlock {
+  const result: ToonBlock = { type: block.type };
 
   if (block.richText) {
-    base.text = richTextToPlain(block.richText);
+    result.text = richTextToPlain(block.richText);
   }
   if (block.checked !== undefined) {
-    base.checked = block.checked;
+    result.checked = block.checked;
   }
   if (block.language) {
-    base.language = block.language;
+    result.language = block.language;
   }
   if (block.url) {
-    base.url = block.url;
+    result.url = block.url;
   }
   if (block.title) {
-    base.title = block.title;
+    result.title = block.title;
   }
   if (block.children && block.children.length > 0) {
-    base.children = block.children.map(blockToToon);
+    result.children = block.children.map(blockToToon);
   }
 
-  return base;
+  return result;
 }
 
 export const toonFormatter: PageFormatter = {

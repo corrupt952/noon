@@ -186,7 +186,7 @@ describe("slimBlock", () => {
   test("handles image block with file url", () => {
     const block = {
       type: "image",
-      image: { file: { url: "https://example.com/image.png" } },
+      image: { type: "file", file: { url: "https://example.com/image.png" } },
     };
     expect(slimBlock(block)).toEqual({
       type: "image",
@@ -197,7 +197,10 @@ describe("slimBlock", () => {
   test("handles image block with external url", () => {
     const block = {
       type: "image",
-      image: { external: { url: "https://external.com/image.png" } },
+      image: {
+        type: "external",
+        external: { url: "https://external.com/image.png" },
+      },
     };
     expect(slimBlock(block)).toEqual({
       type: "image",
@@ -208,7 +211,10 @@ describe("slimBlock", () => {
   test("handles video block", () => {
     const block = {
       type: "video",
-      video: { external: { url: "https://youtube.com/watch?v=123" } },
+      video: {
+        type: "external",
+        external: { url: "https://youtube.com/watch?v=123" },
+      },
     };
     expect(slimBlock(block)).toEqual({
       type: "video",
@@ -315,7 +321,7 @@ describe("slimBlock", () => {
   test("handles pdf block", () => {
     const block = {
       type: "pdf",
-      pdf: { file: { url: "https://example.com/doc.pdf" } },
+      pdf: { type: "file", file: { url: "https://example.com/doc.pdf" } },
     };
     expect(slimBlock(block)).toEqual({
       type: "pdf",
@@ -326,7 +332,10 @@ describe("slimBlock", () => {
   test("handles file block", () => {
     const block = {
       type: "file",
-      file: { external: { url: "https://example.com/file.zip" } },
+      file: {
+        type: "external",
+        external: { url: "https://example.com/file.zip" },
+      },
     };
     expect(slimBlock(block)).toEqual({
       type: "file",

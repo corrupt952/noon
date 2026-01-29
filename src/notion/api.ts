@@ -1,4 +1,9 @@
-import type { QueryDataSourceParameters } from "@notionhq/client";
+import type {
+  BlockObjectResponse,
+  DatabaseObjectResponse,
+  PageObjectResponse,
+  QueryDataSourceParameters,
+} from "@notionhq/client";
 import { Client } from "@notionhq/client";
 import pLimit from "p-limit";
 import { refreshToken, startAuthFlow } from "../auth";
@@ -70,13 +75,14 @@ export async function getDatabase(databaseId: string) {
 export async function getDataSourceSchema(databaseId: string) {
   const client = await getClient();
 
-  const database = await client.databases.retrieve({ database_id: databaseId });
-  const dataSources = (database as any).data_sources;
-  if (!dataSources || dataSources.length === 0) {
+  const database = (await client.databases.retrieve({
+    database_id: databaseId,
+  })) as DatabaseObjectResponse;
+  if (database.data_sources.length === 0) {
     throw new Error("Database has no data sources");
   }
 
-  const dataSourceId = dataSources[0].id;
+  const dataSourceId = database.data_sources[0].id;
   return client.dataSources.retrieve({ data_source_id: dataSourceId });
 }
 
@@ -90,13 +96,14 @@ export async function queryDatabase(
 ) {
   const client = await getClient();
 
-  const database = await client.databases.retrieve({ database_id: databaseId });
-  const dataSources = (database as any).data_sources;
-  if (!dataSources || dataSources.length === 0) {
+  const database = (await client.databases.retrieve({
+    database_id: databaseId,
+  })) as DatabaseObjectResponse;
+  if (database.data_sources.length === 0) {
     throw new Error("Database has no data sources");
   }
 
-  const dataSourceId = dataSources[0].id;
+  const dataSourceId = database.data_sources[0].id;
   return client.dataSources.query({
     data_source_id: dataSourceId,
     ...(filter && { filter }),
@@ -117,9 +124,11 @@ export async function getBlockChildren(blockId: string) {
 }
 
 // Get all block children with pagination
-export async function getAllBlockChildren(blockId: string): Promise<any[]> {
+export async function getAllBlockChildren(
+  blockId: string,
+): Promise<BlockObjectResponse[]> {
   const client = await getClient();
-  const allBlocks: any[] = [];
+  const allBlocks: BlockObjectResponse[] = [];
   let cursor: string | undefined;
 
   do {
@@ -127,7 +136,7 @@ export async function getAllBlockChildren(blockId: string): Promise<any[]> {
       block_id: blockId,
       start_cursor: cursor,
     });
-    allBlocks.push(...response.results);
+    allBlocks.push(...(response.results as BlockObjectResponse[]));
     cursor = response.has_more
       ? (response.next_cursor ?? undefined)
       : undefined;
@@ -139,7 +148,7 @@ export async function getAllBlockChildren(blockId: string): Promise<any[]> {
 // Fetch blocks recursively with rate limiting (preserves order)
 export async function fetchBlocksRecursive(
   blockId: string,
-  slimBlockFn: (block: any) => SlimBlock,
+  slimBlockFn: (block: BlockObjectResponse) => SlimBlock,
 ): Promise<SlimBlock[]> {
   async function fetchChildren(parentId: string): Promise<SlimBlock[]> {
     const blocks = await limit(() => getAllBlockChildren(parentId));
@@ -170,12 +179,12 @@ export async function fetchBlocksRecursive(
 // Get page with caching support
 export async function getPageWithCache(
   pageId: string,
-  slimBlockFn: (block: any) => SlimBlock,
-  extractTitleFn: (page: any) => string,
+  slimBlockFn: (block: BlockObjectResponse) => SlimBlock,
+  extractTitleFn: (page: PageObjectResponse) => string,
 ): Promise<{ page: SlimPage; blocks: SlimBlock[]; fromCache: boolean }> {
   // Step 1: Get page metadata
-  const page = await getPage(pageId);
-  const lastEditedTime = (page as any).last_edited_time;
+  const page = (await getPage(pageId)) as PageObjectResponse;
+  const lastEditedTime = page.last_edited_time;
 
   // Step 2: Check cache
   const cached = getCache(pageId);
@@ -194,7 +203,7 @@ export async function getPageWithCache(
   const slimPage: SlimPage = {
     id: page.id,
     title: extractTitleFn(page),
-    url: (page as any).url,
+    url: page.url,
   };
 
   // Step 5: Save to cache

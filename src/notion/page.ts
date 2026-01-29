@@ -1,3 +1,8 @@
+import type {
+  PageObjectResponse,
+  QueryDataSourceResponse,
+  SearchResponse,
+} from "@notionhq/client";
 import type { SlimBlock } from "./block";
 
 export interface SlimPage {
@@ -6,35 +11,72 @@ export interface SlimPage {
   url: string;
 }
 
-// Extract title from Notion's title array
-export function extractTitle(item: any): string {
-  // For pages
-  if (item.properties?.title?.title) {
-    return (
-      item.properties.title.title.map((t: any) => t.plain_text).join("") ||
-      "(untitled)"
-    );
-  }
-  // For databases
-  if (item.title) {
-    return item.title.map((t: any) => t.plain_text).join("") || "(untitled)";
-  }
-  // Fallback: check all properties for title type
-  if (item.properties) {
-    for (const prop of Object.values(item.properties) as any[]) {
-      if (prop.type === "title" && prop.title) {
-        return (
-          prop.title.map((t: any) => t.plain_text).join("") || "(untitled)"
-        );
+interface SlimSearchResult {
+  object: string;
+  id: string;
+  title: string;
+}
+
+interface SlimQueryResult {
+  id: string;
+  title: string;
+  url: string;
+}
+
+interface SlimPageWithBlocks extends SlimPage {
+  blocks: SlimBlock[];
+}
+
+interface RichTextLike {
+  plain_text: string;
+}
+
+// Type guard: check if value is a non-null object (not array)
+function isObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+// Type guard: check if value is an array of rich text items
+function isRichTextArray(value: unknown): value is RichTextLike[] {
+  if (!Array.isArray(value)) return false;
+  return value.every(
+    (item) =>
+      item !== null &&
+      typeof item === "object" &&
+      "plain_text" in item &&
+      typeof item.plain_text === "string",
+  );
+}
+
+// Extract title from Notion objects (pages, databases, data sources)
+// Accepts unknown and uses type guards for safe runtime narrowing
+export function extractTitle(item: unknown): string {
+  if (!isObject(item)) return "(untitled)";
+
+  // For pages - check properties for title type
+  if (isObject(item.properties)) {
+    for (const prop of Object.values(item.properties)) {
+      if (
+        isObject(prop) &&
+        prop.type === "title" &&
+        isRichTextArray(prop.title)
+      ) {
+        const text = prop.title.map((t) => t.plain_text).join("");
+        return text || "(untitled)";
       }
     }
+  }
+  // For databases - check item.title directly
+  if (isRichTextArray(item.title)) {
+    const text = item.title.map((t) => t.plain_text).join("");
+    return text || "(untitled)";
   }
   return "(untitled)";
 }
 
 // Slim down search results to essential fields
-export function slimSearchResults(results: any): any[] {
-  return results.results.map((item: any) => ({
+export function slimSearchResults(results: SearchResponse): SlimSearchResult[] {
+  return results.results.map((item) => ({
     object: item.object,
     id: item.id,
     title: extractTitle(item),
@@ -42,7 +84,10 @@ export function slimSearchResults(results: any): any[] {
 }
 
 // Slim down page with content
-export function slimPage(page: any, blocks: SlimBlock[]): any {
+export function slimPage(
+  page: PageObjectResponse,
+  blocks: SlimBlock[],
+): SlimPageWithBlocks {
   return {
     id: page.id,
     title: extractTitle(page),
@@ -52,10 +97,12 @@ export function slimPage(page: any, blocks: SlimBlock[]): any {
 }
 
 // Slim down query results (database records)
-export function slimQueryResults(results: any): any[] {
-  return results.results.map((item: any) => ({
+export function slimQueryResults(
+  results: QueryDataSourceResponse,
+): SlimQueryResult[] {
+  return results.results.map((item) => ({
     id: item.id,
     title: extractTitle(item),
-    url: item.url,
+    url: "url" in item ? item.url : "",
   }));
 }

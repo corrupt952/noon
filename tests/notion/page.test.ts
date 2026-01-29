@@ -7,10 +7,11 @@ import {
 } from "../../src/notion/page";
 
 describe("extractTitle", () => {
-  test("extracts title from page properties.title.title", () => {
+  test("extracts title from page properties with type=title", () => {
     const item = {
       properties: {
-        title: {
+        Title: {
+          type: "title",
           title: [{ plain_text: "Page Title" }],
         },
       },
@@ -21,7 +22,8 @@ describe("extractTitle", () => {
   test("concatenates multiple text segments", () => {
     const item = {
       properties: {
-        title: {
+        Title: {
+          type: "title",
           title: [{ plain_text: "Hello " }, { plain_text: "World" }],
         },
       },
@@ -36,7 +38,7 @@ describe("extractTitle", () => {
     expect(extractTitle(item)).toBe("Database Title");
   });
 
-  test("finds title in properties with type=title", () => {
+  test("finds title in properties with any name", () => {
     const item = {
       properties: {
         Name: {
@@ -51,7 +53,8 @@ describe("extractTitle", () => {
   test("returns (untitled) for empty title array in properties", () => {
     const item = {
       properties: {
-        title: {
+        Title: {
+          type: "title",
           title: [],
         },
       },
@@ -85,7 +88,7 @@ describe("slimSearchResults", () => {
           object: "page",
           id: "page-id-1",
           properties: {
-            title: { title: [{ plain_text: "Page 1" }] },
+            Title: { type: "title", title: [{ plain_text: "Page 1" }] },
           },
         },
         {
@@ -113,7 +116,7 @@ describe("slimPage", () => {
       id: "page-123",
       url: "https://notion.so/page-123",
       properties: {
-        title: { title: [{ plain_text: "My Page" }] },
+        Title: { type: "title", title: [{ plain_text: "My Page" }] },
       },
     };
     const blocks = [{ type: "paragraph", richText: [{ text: "Content" }] }];
@@ -130,7 +133,9 @@ describe("slimPage", () => {
     const page = {
       id: "page-456",
       url: "https://notion.so/page-456",
-      title: [{ plain_text: "Empty Page" }],
+      properties: {
+        Title: { type: "title", title: [{ plain_text: "Empty Page" }] },
+      },
     };
 
     expect(slimPage(page, [])).toEqual({

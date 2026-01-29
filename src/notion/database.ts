@@ -1,3 +1,7 @@
+import type {
+  DatabaseObjectResponse,
+  DataSourceObjectResponse,
+} from "@notionhq/client";
 import { extractTitle } from "./page";
 
 export interface SlimSelectOption {
@@ -17,7 +21,14 @@ export interface SlimDatabaseSchema {
   properties: SlimProperty[];
 }
 
-function slimSelectOptions(options: any[]): SlimSelectOption[] | undefined {
+interface SelectOption {
+  name: string;
+  color?: string;
+}
+
+function slimSelectOptions(
+  options: SelectOption[] | undefined,
+): SlimSelectOption[] | undefined {
   if (!options || options.length === 0) return undefined;
   return options.map((opt) => ({
     name: opt.name,
@@ -26,26 +37,23 @@ function slimSelectOptions(options: any[]): SlimSelectOption[] | undefined {
 }
 
 export function slimDatabaseSchema(
-  database: any,
-  dataSource: any,
+  database: DatabaseObjectResponse,
+  dataSource: DataSourceObjectResponse,
 ): SlimDatabaseSchema {
   const properties: SlimProperty[] = [];
 
-  for (const [name, prop] of Object.entries(dataSource.properties || {})) {
-    const p = prop as any;
+  for (const [name, prop] of Object.entries(dataSource.properties)) {
     const slimProp: SlimProperty = {
       name,
-      type: p.type,
+      type: prop.type,
     };
 
-    if (
-      p.type === "select" ||
-      p.type === "multi_select" ||
-      p.type === "status"
-    ) {
-      const opts =
-        p.select?.options || p.multi_select?.options || p.status?.options;
-      slimProp.options = slimSelectOptions(opts);
+    if (prop.type === "select") {
+      slimProp.options = slimSelectOptions(prop.select.options);
+    } else if (prop.type === "multi_select") {
+      slimProp.options = slimSelectOptions(prop.multi_select.options);
+    } else if (prop.type === "status") {
+      slimProp.options = slimSelectOptions(prop.status.options);
     }
 
     properties.push(slimProp);
