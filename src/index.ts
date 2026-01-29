@@ -234,7 +234,7 @@ function extractRichText(richText: any[]): string {
 
 // Slim down a block to essential fields
 export function slimBlock(block: any): any {
-  const base = { id: block.id, type: block.type };
+  const base = { type: block.type };
 
   switch (block.type) {
     case "paragraph":

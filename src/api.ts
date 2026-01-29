@@ -117,44 +117,28 @@ export async function getAllBlockChildren(blockId: string): Promise<any[]> {
   return allBlocks;
 }
 
-// Fetch blocks recursively with BFS and rate limiting
+// Fetch blocks recursively with rate limiting (preserves order)
 export async function fetchBlocksRecursive(
   blockId: string,
   slimBlockFn: (block: any) => SlimBlockData
 ): Promise<SlimBlockData[]> {
-  const client = await getClient();
-
   async function fetchChildren(parentId: string): Promise<SlimBlockData[]> {
     const blocks = await limit(() => getAllBlockChildren(parentId));
-    const result: SlimBlockData[] = [];
 
-    // Process blocks and queue children fetches
-    const childFetches: Promise<{ block: SlimBlockData; children: SlimBlockData[] }>[] = [];
+    // Process all blocks in parallel while preserving order
+    const processedBlocks = await Promise.all(
+      blocks.map(async (block) => {
+        const slimBlock = slimBlockFn(block);
 
-    for (const block of blocks) {
-      const slimBlock = slimBlockFn(block);
+        if (block.has_children && block.type !== "child_page" && block.type !== "child_database") {
+          slimBlock.children = await fetchChildren(block.id);
+        }
 
-      if (block.has_children && block.type !== "child_page" && block.type !== "child_database") {
-        // Queue child fetch for blocks with children (except child_page/child_database)
-        childFetches.push(
-          fetchChildren(block.id).then((children) => ({
-            block: slimBlock,
-            children,
-          }))
-        );
-      } else {
-        result.push(slimBlock);
-      }
-    }
+        return slimBlock;
+      })
+    );
 
-    // Wait for all child fetches and assign children
-    const childResults = await Promise.all(childFetches);
-    for (const { block, children } of childResults) {
-      block.children = children;
-      result.push(block);
-    }
-
-    return result;
+    return processedBlocks;
   }
 
   return fetchChildren(blockId);
