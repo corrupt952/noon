@@ -86,27 +86,14 @@ noon mcp
 ### Claude Code Setup
 
 ```bash
-# Show install command for claude mcp add
-noon mcp install
+# Quick install (globally available)
+eval $(noon mcp install)
 
-# Show mcpServers JSON config
+# Install to current project only
+eval $(noon mcp install --local)
+
+# Show mcpServers JSON config for manual setup
 noon mcp config
-```
-
-#### Quick Install
-
-```bash
-# Run the output of this command
-$(noon mcp install)
-```
-
-#### Manual Configuration
-
-Add to `~/.claude/settings.json`:
-
-```bash
-noon mcp config
-# Copy the output to your settings.json
 ```
 
 ## Configuration
