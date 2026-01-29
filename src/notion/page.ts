@@ -15,7 +15,6 @@ interface SlimSearchResult {
   object: string;
   id: string;
   title: string;
-  parent_id?: string;
 }
 
 interface SlimSearchResponse {
@@ -87,33 +86,14 @@ export function extractTitle(item: unknown): string {
   return "(untitled)";
 }
 
-// Extract parent database_id from search result objects
-function extractParentId(item: unknown): string | undefined {
-  if (!isObject(item)) return undefined;
-  if (!isObject(item.parent)) return undefined;
-  // For data_source: parent.database_id
-  // For page in database: parent.database_id
-  if (typeof item.parent.database_id === "string") {
-    return item.parent.database_id;
-  }
-  return undefined;
-}
-
 // Slim down search results to essential fields
 export function slimSearchResults(results: SearchResponse): SlimSearchResponse {
   return {
-    results: results.results.map((item) => {
-      const result: SlimSearchResult = {
-        object: item.object,
-        id: item.id,
-        title: extractTitle(item),
-      };
-      const parentId = extractParentId(item);
-      if (parentId) {
-        result.parent_id = parentId;
-      }
-      return result;
-    }),
+    results: results.results.map((item) => ({
+      object: item.object,
+      id: item.id,
+      title: extractTitle(item),
+    })),
     has_more: results.has_more,
     next_cursor: results.next_cursor ?? null,
   };

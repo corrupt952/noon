@@ -1,7 +1,4 @@
-import type {
-  DatabaseObjectResponse,
-  DataSourceObjectResponse,
-} from "@notionhq/client";
+import type { DataSourceObjectResponse } from "@notionhq/client";
 import { extractTitle } from "./page";
 
 export interface SlimSelectOption {
@@ -37,7 +34,6 @@ function slimSelectOptions(
 }
 
 export function slimDatabaseSchema(
-  database: DatabaseObjectResponse,
   dataSource: DataSourceObjectResponse,
 ): SlimDatabaseSchema {
   const properties: SlimProperty[] = [];
@@ -60,8 +56,8 @@ export function slimDatabaseSchema(
   }
 
   return {
-    id: database.id,
-    title: extractTitle(database),
+    id: dataSource.id,
+    title: extractTitle(dataSource),
     properties,
   };
 }

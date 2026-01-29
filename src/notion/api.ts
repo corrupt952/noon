@@ -72,6 +72,11 @@ export async function getDatabase(databaseId: string) {
   return client.databases.retrieve({ database_id: databaseId });
 }
 
+export async function getDataSource(dataSourceId: string) {
+  const client = await getClient();
+  return client.dataSources.retrieve({ data_source_id: dataSourceId });
+}
+
 export async function getDataSourceSchema(databaseId: string) {
   const client = await getClient();
 
@@ -83,11 +88,24 @@ export async function getDataSourceSchema(databaseId: string) {
   }
 
   const dataSourceId = database.data_sources[0].id;
-  return client.dataSources.retrieve({ data_source_id: dataSourceId });
+  return getDataSource(dataSourceId);
 }
 
 export type QueryFilter = QueryDataSourceParameters["filter"];
 export type QuerySorts = QueryDataSourceParameters["sorts"];
+
+export async function queryDataSource(
+  dataSourceId: string,
+  filter?: QueryFilter,
+  sorts?: QuerySorts,
+) {
+  const client = await getClient();
+  return client.dataSources.query({
+    data_source_id: dataSourceId,
+    ...(filter && { filter }),
+    ...(sorts && { sorts }),
+  });
+}
 
 export async function queryDatabase(
   databaseId: string,
@@ -104,11 +122,7 @@ export async function queryDatabase(
   }
 
   const dataSourceId = database.data_sources[0].id;
-  return client.dataSources.query({
-    data_source_id: dataSourceId,
-    ...(filter && { filter }),
-    ...(sorts && { sorts }),
-  });
+  return queryDataSource(dataSourceId, filter, sorts);
 }
 
 // ============ Blocks ============

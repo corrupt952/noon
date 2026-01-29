@@ -6,14 +6,13 @@ import { markdownFormatter, toonFormatter } from "./formatters";
 import {
   clearAllCache,
   extractTitle,
-  getDatabase,
-  getDataSourceSchema,
+  getDataSource,
   getPageWithCache,
   parseFilter,
   parseNotionId,
   parseSorts,
   QueryParseError,
-  queryDatabase,
+  queryDataSource,
   search,
   slimBlock,
   slimDatabaseSchema,
@@ -30,7 +29,7 @@ const server = new McpServer({
 // Tool: noon_search
 server.tool(
   "noon_search",
-  "Search Notion pages and databases by keyword. Returns a list of matching items with their IDs and titles. Use noon_page to get full content of a specific page. For data_source objects (databases), use parent_id (not id) with noon_database or noon_query.",
+  "Search Notion pages and databases by keyword. Returns a list of matching items with their IDs and titles. Use noon_page to get full content of a specific page. For data_source objects (databases), use noon_database or noon_query with the id.",
   {
     query: z.string().describe("Search keyword"),
   },
@@ -74,13 +73,12 @@ server.tool(
   "noon_database",
   "Get Notion database schema (properties). Returns the database title and all property definitions including names, types, and available options for select/multi_select/status fields. Use this to understand the database structure before constructing queries.",
   {
-    id: z.string().describe("Notion database ID or URL"),
+    id: z.string().describe("Notion data_source ID (from noon_search) or URL"),
   },
   async ({ id }) => {
-    const dbId = parseNotionId(id);
-    const database = await getDatabase(dbId);
-    const dataSource = await getDataSourceSchema(dbId);
-    const schema = slimDatabaseSchema(database, dataSource);
+    const dataSourceId = parseNotionId(id);
+    const dataSource = await getDataSource(dataSourceId);
+    const schema = slimDatabaseSchema(dataSource);
     return {
       content: [{ type: "text", text: toToon(schema) }],
     };
@@ -92,7 +90,7 @@ server.tool(
   "noon_query",
   "Query Notion database records with optional filtering and sorting. Use this for searching within a specific database. Returns records with IDs, titles, and URLs. Use noon_database first to get the schema (property names, types, select options) for constructing filters.",
   {
-    id: z.string().describe("Notion database ID or URL"),
+    id: z.string().describe("Notion data_source ID (from noon_search) or URL"),
     filter: z
       .string()
       .optional()
@@ -111,8 +109,8 @@ server.tool(
       const filter = filterJson ? parseFilter(filterJson) : undefined;
       const sorts = sortsJson ? parseSorts(sortsJson) : undefined;
 
-      const dbId = parseNotionId(id);
-      const results = await queryDatabase(dbId, filter, sorts);
+      const dataSourceId = parseNotionId(id);
+      const results = await queryDataSource(dataSourceId, filter, sorts);
       return {
         content: [{ type: "text", text: toToon(slimQueryResults(results)) }],
       };
