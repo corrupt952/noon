@@ -93,6 +93,15 @@ describe("markdownFormatter", () => {
       );
       expect(content).toBe("- [x] Done");
     });
+
+    test("formats toggle", () => {
+      const content = getContent(
+        formatBlocks([
+          { type: "toggle", richText: [{ text: "Toggle header" }] },
+        ]),
+      );
+      expect(content).toBe("- Toggle header");
+    });
   });
 
   describe("quote and callout blocks", () => {
@@ -155,6 +164,13 @@ describe("markdownFormatter", () => {
         formatBlocks([{ type: "file", url: "https://example.com/doc.pdf" }]),
       );
       expect(content).toBe("[file](https://example.com/doc.pdf)");
+    });
+
+    test("formats pdf", () => {
+      const content = getContent(
+        formatBlocks([{ type: "pdf", url: "https://example.com/doc.pdf" }]),
+      );
+      expect(content).toBe("[pdf](https://example.com/doc.pdf)");
     });
 
     test("formats bookmark", () => {

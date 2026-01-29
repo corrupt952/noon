@@ -265,6 +265,75 @@ describe("slimBlock", () => {
     });
   });
 
+  test("handles table_of_contents block", () => {
+    const block = { type: "table_of_contents" };
+    expect(slimBlock(block)).toEqual({ type: "table_of_contents" });
+  });
+
+  test("handles column_list block", () => {
+    const block = { type: "column_list" };
+    expect(slimBlock(block)).toEqual({ type: "column_list" });
+  });
+
+  test("handles column block", () => {
+    const block = { type: "column" };
+    expect(slimBlock(block)).toEqual({ type: "column" });
+  });
+
+  test("handles synced_block block", () => {
+    const block = { type: "synced_block" };
+    expect(slimBlock(block)).toEqual({ type: "synced_block" });
+  });
+
+  test("handles template block", () => {
+    const block = { type: "template" };
+    expect(slimBlock(block)).toEqual({ type: "template" });
+  });
+
+  test("handles callout block", () => {
+    const block = {
+      type: "callout",
+      callout: { rich_text: [{ plain_text: "Note" }] },
+    };
+    expect(slimBlock(block)).toEqual({
+      type: "callout",
+      richText: [{ text: "Note" }],
+    });
+  });
+
+  test("handles toggle block", () => {
+    const block = {
+      type: "toggle",
+      toggle: { rich_text: [{ plain_text: "Toggle content" }] },
+    };
+    expect(slimBlock(block)).toEqual({
+      type: "toggle",
+      richText: [{ text: "Toggle content" }],
+    });
+  });
+
+  test("handles pdf block", () => {
+    const block = {
+      type: "pdf",
+      pdf: { file: { url: "https://example.com/doc.pdf" } },
+    };
+    expect(slimBlock(block)).toEqual({
+      type: "pdf",
+      url: "https://example.com/doc.pdf",
+    });
+  });
+
+  test("handles file block", () => {
+    const block = {
+      type: "file",
+      file: { external: { url: "https://example.com/file.zip" } },
+    };
+    expect(slimBlock(block)).toEqual({
+      type: "file",
+      url: "https://example.com/file.zip",
+    });
+  });
+
   test("handles unknown block type", () => {
     const block = { type: "unknown_type" };
     expect(slimBlock(block)).toEqual({ type: "unknown_type" });
