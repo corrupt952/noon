@@ -197,7 +197,7 @@ async function handleStatus() {
 }
 
 // Extract title from Notion's title array
-function extractTitle(item: any): string {
+export function extractTitle(item: any): string {
   // For pages
   if (item.properties?.title?.title) {
     return item.properties.title.title.map((t: any) => t.plain_text).join("") || "(untitled)";
@@ -233,8 +233,8 @@ function extractRichText(richText: any[]): string {
 }
 
 // Slim down a block to essential fields
-function slimBlock(block: any): any {
-  const base = { type: block.type };
+export function slimBlock(block: any): any {
+  const base = { id: block.id, type: block.type };
 
   switch (block.type) {
     case "paragraph":
@@ -247,6 +247,7 @@ function slimBlock(block: any): any {
     case "bulleted_list_item":
     case "numbered_list_item":
     case "to_do":
+    case "toggle":
       return {
         ...base,
         text: extractRichText(block[block.type]?.rich_text),
@@ -275,6 +276,11 @@ function slimBlock(block: any): any {
       return { ...base, title: block.child_page?.title };
     case "child_database":
       return { ...base, title: block.child_database?.title };
+    case "column_list":
+    case "column":
+    case "synced_block":
+    case "template":
+      return base;
     default:
       return base;
   }
@@ -318,11 +324,14 @@ async function handlePage(args: string[]) {
   }
 
   const pageId = parseNotionId(input);
-  const [page, content] = await Promise.all([
-    api.getPage(pageId),
-    api.getBlockChildren(pageId),
-  ]);
-  output(slimPage(page, content.results));
+  const result = await api.getPageWithCache(pageId, slimBlock, extractTitle);
+
+  output({
+    id: result.page.id,
+    title: result.page.title,
+    url: result.page.url,
+    blocks: result.blocks,
+  });
 }
 
 async function handleQuery(args: string[]) {

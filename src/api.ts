@@ -1,8 +1,21 @@
 import { Client } from "@notionhq/client";
+import pLimit from "p-limit";
 import { getToken, isTokenExpired, type TokenData } from "./config";
 import { refreshToken, startAuthFlow } from "./auth";
+import {
+  getCache,
+  saveCache,
+  isCacheValid,
+  type SlimBlockData,
+  type SlimPageData,
+  type CachedPage,
+} from "./cache";
 
 let notionClient: Client | null = null;
+
+// Rate limit: 3 requests/sec for Notion API
+const CONCURRENCY_LIMIT = 3;
+const limit = pLimit(CONCURRENCY_LIMIT);
 
 async function ensureValidToken(): Promise<TokenData> {
   let token = getToken();
@@ -84,5 +97,113 @@ export async function getBlock(blockId: string) {
 export async function getBlockChildren(blockId: string) {
   const client = await getClient();
   return client.blocks.children.list({ block_id: blockId });
+}
+
+// Get all block children with pagination
+export async function getAllBlockChildren(blockId: string): Promise<any[]> {
+  const client = await getClient();
+  const allBlocks: any[] = [];
+  let cursor: string | undefined = undefined;
+
+  do {
+    const response = await client.blocks.children.list({
+      block_id: blockId,
+      start_cursor: cursor,
+    });
+    allBlocks.push(...response.results);
+    cursor = response.has_more ? response.next_cursor ?? undefined : undefined;
+  } while (cursor);
+
+  return allBlocks;
+}
+
+// Fetch blocks recursively with BFS and rate limiting
+export async function fetchBlocksRecursive(
+  blockId: string,
+  slimBlockFn: (block: any) => SlimBlockData
+): Promise<SlimBlockData[]> {
+  const client = await getClient();
+
+  async function fetchChildren(parentId: string): Promise<SlimBlockData[]> {
+    const blocks = await limit(() => getAllBlockChildren(parentId));
+    const result: SlimBlockData[] = [];
+
+    // Process blocks and queue children fetches
+    const childFetches: Promise<{ block: SlimBlockData; children: SlimBlockData[] }>[] = [];
+
+    for (const block of blocks) {
+      const slimBlock = slimBlockFn(block);
+
+      if (block.has_children && block.type !== "child_page" && block.type !== "child_database") {
+        // Queue child fetch for blocks with children (except child_page/child_database)
+        childFetches.push(
+          fetchChildren(block.id).then((children) => ({
+            block: slimBlock,
+            children,
+          }))
+        );
+      } else {
+        result.push(slimBlock);
+      }
+    }
+
+    // Wait for all child fetches and assign children
+    const childResults = await Promise.all(childFetches);
+    for (const { block, children } of childResults) {
+      block.children = children;
+      result.push(block);
+    }
+
+    return result;
+  }
+
+  return fetchChildren(blockId);
+}
+
+// Get page with caching support
+export async function getPageWithCache(
+  pageId: string,
+  slimBlockFn: (block: any) => SlimBlockData,
+  extractTitle: (page: any) => string
+): Promise<{ page: SlimPageData; blocks: SlimBlockData[]; fromCache: boolean }> {
+  // Step 1: Get page metadata
+  const page = await getPage(pageId);
+  const lastEditedTime = (page as any).last_edited_time;
+
+  // Step 2: Check cache
+  const cached = getCache(pageId);
+  if (cached && isCacheValid(cached, lastEditedTime)) {
+    return {
+      page: cached.page,
+      blocks: cached.blocks,
+      fromCache: true,
+    };
+  }
+
+  // Step 3: Fetch blocks recursively
+  const blocks = await fetchBlocksRecursive(pageId, slimBlockFn);
+
+  // Step 4: Build slim page data
+  const slimPage: SlimPageData = {
+    id: page.id,
+    title: extractTitle(page),
+    url: (page as any).url,
+  };
+
+  // Step 5: Save to cache
+  const cacheData: CachedPage = {
+    pageId,
+    lastEditedTime,
+    fetchedAt: Date.now(),
+    page: slimPage,
+    blocks,
+  };
+  saveCache(cacheData);
+
+  return {
+    page: slimPage,
+    blocks,
+    fromCache: false,
+  };
 }
 
