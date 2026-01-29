@@ -5,3 +5,4 @@ export * from "./cache";
 export * from "./database";
 export * from "./id";
 export * from "./page";
+export * from "./query";

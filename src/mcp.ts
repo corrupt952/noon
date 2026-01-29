@@ -9,7 +9,10 @@ import {
   getDatabase,
   getDataSourceSchema,
   getPageWithCache,
+  parseFilter,
   parseNotionId,
+  parseSorts,
+  QueryParseError,
   queryDatabase,
   search,
   slimBlock,
@@ -91,16 +94,41 @@ server.tool(
 // Tool: noon_query
 server.tool(
   "noon_query",
-  "Query Notion database records. Returns all records in the database with their IDs and titles. Use this to list items in a Notion database (e.g., task lists, project trackers, content calendars).",
+  "Query Notion database records with optional filtering and sorting. Returns records with IDs, titles, and URLs. Use noon_database first to get the schema (property names, types, select options) for constructing filters.",
   {
     id: z.string().describe("Notion database ID or URL"),
+    filter: z
+      .string()
+      .optional()
+      .describe(
+        'Filter JSON. Examples: {"property":"Status","select":{"equals":"Done"}}, {"property":"Tags","multi_select":{"contains":"Important"}}, {"and":[...]}',
+      ),
+    sorts: z
+      .string()
+      .optional()
+      .describe(
+        'Sorts JSON array. Example: [{"property":"Created","direction":"descending"}]',
+      ),
   },
-  async ({ id }) => {
-    const dbId = parseNotionId(id);
-    const results = await queryDatabase(dbId);
-    return {
-      content: [{ type: "text", text: toToon(slimQueryResults(results)) }],
-    };
+  async ({ id, filter: filterJson, sorts: sortsJson }) => {
+    try {
+      const filter = filterJson ? parseFilter(filterJson) : undefined;
+      const sorts = sortsJson ? parseSorts(sortsJson) : undefined;
+
+      const dbId = parseNotionId(id);
+      const results = await queryDatabase(dbId, filter, sorts);
+      return {
+        content: [{ type: "text", text: toToon(slimQueryResults(results)) }],
+      };
+    } catch (e) {
+      if (e instanceof QueryParseError) {
+        return {
+          content: [{ type: "text", text: `Error: ${e.message}` }],
+          isError: true,
+        };
+      }
+      throw e;
+    }
   },
 );
 

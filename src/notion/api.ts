@@ -1,3 +1,4 @@
+import type { QueryDataSourceParameters } from "@notionhq/client";
 import { Client } from "@notionhq/client";
 import pLimit from "p-limit";
 import { refreshToken, startAuthFlow } from "../auth";
@@ -79,10 +80,13 @@ export async function getDataSourceSchema(databaseId: string) {
   return client.dataSources.retrieve({ data_source_id: dataSourceId });
 }
 
+export type QueryFilter = QueryDataSourceParameters["filter"];
+export type QuerySorts = QueryDataSourceParameters["sorts"];
+
 export async function queryDatabase(
   databaseId: string,
-  filter?: object,
-  sorts?: object[],
+  filter?: QueryFilter,
+  sorts?: QuerySorts,
 ) {
   const client = await getClient();
 
@@ -93,12 +97,11 @@ export async function queryDatabase(
   }
 
   const dataSourceId = dataSources[0].id;
-  const params: any = { data_source_id: dataSourceId };
-
-  if (filter) params.filter = filter;
-  if (sorts) params.sorts = sorts;
-
-  return client.dataSources.query(params);
+  return client.dataSources.query({
+    data_source_id: dataSourceId,
+    ...(filter && { filter }),
+    ...(sorts && { sorts }),
+  });
 }
 
 // ============ Blocks ============
