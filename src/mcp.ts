@@ -18,6 +18,7 @@ import {
   slimBlock,
   slimDatabaseSchema,
   slimQueryResults,
+  slimSearchResults,
 } from "./notion";
 
 // Create MCP Server
@@ -35,13 +36,8 @@ server.tool(
   },
   async ({ query }) => {
     const results = await search(query);
-    const slim = results.results.map((item) => ({
-      object: item.object,
-      id: item.id,
-      title: extractTitle(item as Parameters<typeof extractTitle>[0]),
-    }));
     return {
-      content: [{ type: "text", text: toToon(slim) }],
+      content: [{ type: "text", text: toToon(slimSearchResults(results)) }],
     };
   },
 );

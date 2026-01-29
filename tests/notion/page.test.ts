@@ -81,7 +81,7 @@ describe("extractTitle", () => {
 });
 
 describe("slimSearchResults", () => {
-  test("transforms search results to slim format", () => {
+  test("transforms search results to slim format with pagination", () => {
     const results = {
       results: [
         {
@@ -97,16 +97,26 @@ describe("slimSearchResults", () => {
           title: [{ plain_text: "Database 1" }],
         },
       ],
+      has_more: true,
+      next_cursor: "cursor-abc",
     };
-    expect(slimSearchResults(results)).toEqual([
-      { object: "page", id: "page-id-1", title: "Page 1" },
-      { object: "database", id: "db-id-1", title: "Database 1" },
-    ]);
+    expect(slimSearchResults(results)).toEqual({
+      results: [
+        { object: "page", id: "page-id-1", title: "Page 1" },
+        { object: "database", id: "db-id-1", title: "Database 1" },
+      ],
+      has_more: true,
+      next_cursor: "cursor-abc",
+    });
   });
 
   test("handles empty results", () => {
-    const results = { results: [] };
-    expect(slimSearchResults(results)).toEqual([]);
+    const results = { results: [], has_more: false, next_cursor: null };
+    expect(slimSearchResults(results)).toEqual({
+      results: [],
+      has_more: false,
+      next_cursor: null,
+    });
   });
 });
 
@@ -148,7 +158,7 @@ describe("slimPage", () => {
 });
 
 describe("slimQueryResults", () => {
-  test("transforms query results to slim format", () => {
+  test("transforms query results to slim format with pagination", () => {
     const results = {
       results: [
         {
@@ -166,15 +176,25 @@ describe("slimQueryResults", () => {
           },
         },
       ],
+      has_more: false,
+      next_cursor: null,
     };
-    expect(slimQueryResults(results)).toEqual([
-      { id: "record-1", title: "Task 1", url: "https://notion.so/record-1" },
-      { id: "record-2", title: "Task 2", url: "https://notion.so/record-2" },
-    ]);
+    expect(slimQueryResults(results)).toEqual({
+      results: [
+        { id: "record-1", title: "Task 1", url: "https://notion.so/record-1" },
+        { id: "record-2", title: "Task 2", url: "https://notion.so/record-2" },
+      ],
+      has_more: false,
+      next_cursor: null,
+    });
   });
 
   test("handles empty query results", () => {
-    const results = { results: [] };
-    expect(slimQueryResults(results)).toEqual([]);
+    const results = { results: [], has_more: false, next_cursor: null };
+    expect(slimQueryResults(results)).toEqual({
+      results: [],
+      has_more: false,
+      next_cursor: null,
+    });
   });
 });

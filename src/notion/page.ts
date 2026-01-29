@@ -17,10 +17,22 @@ interface SlimSearchResult {
   title: string;
 }
 
+interface SlimSearchResponse {
+  results: SlimSearchResult[];
+  has_more: boolean;
+  next_cursor: string | null;
+}
+
 interface SlimQueryResult {
   id: string;
   title: string;
   url: string;
+}
+
+interface SlimQueryResponse {
+  results: SlimQueryResult[];
+  has_more: boolean;
+  next_cursor: string | null;
 }
 
 interface SlimPageWithBlocks extends SlimPage {
@@ -75,12 +87,16 @@ export function extractTitle(item: unknown): string {
 }
 
 // Slim down search results to essential fields
-export function slimSearchResults(results: SearchResponse): SlimSearchResult[] {
-  return results.results.map((item) => ({
-    object: item.object,
-    id: item.id,
-    title: extractTitle(item),
-  }));
+export function slimSearchResults(results: SearchResponse): SlimSearchResponse {
+  return {
+    results: results.results.map((item) => ({
+      object: item.object,
+      id: item.id,
+      title: extractTitle(item),
+    })),
+    has_more: results.has_more,
+    next_cursor: results.next_cursor ?? null,
+  };
 }
 
 // Slim down page with content
@@ -99,10 +115,14 @@ export function slimPage(
 // Slim down query results (database records)
 export function slimQueryResults(
   results: QueryDataSourceResponse,
-): SlimQueryResult[] {
-  return results.results.map((item) => ({
-    id: item.id,
-    title: extractTitle(item),
-    url: "url" in item ? item.url : "",
-  }));
+): SlimQueryResponse {
+  return {
+    results: results.results.map((item) => ({
+      id: item.id,
+      title: extractTitle(item),
+      url: "url" in item ? item.url : "",
+    })),
+    has_more: results.has_more,
+    next_cursor: results.next_cursor ?? null,
+  };
 }
