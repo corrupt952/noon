@@ -72,14 +72,20 @@ export async function queryDatabase(
   sorts?: object[],
 ) {
   const client = await getClient();
-  const params: Parameters<typeof client.databases.query>[0] = {
-    database_id: databaseId,
-  };
 
-  if (filter) params.filter = filter as any;
-  if (sorts) params.sorts = sorts as any;
+  const database = await client.databases.retrieve({ database_id: databaseId });
+  const dataSources = (database as any).data_sources;
+  if (!dataSources || dataSources.length === 0) {
+    throw new Error("Database has no data sources");
+  }
 
-  return client.databases.query(params);
+  const dataSourceId = dataSources[0].id;
+  const params: any = { data_source_id: dataSourceId };
+
+  if (filter) params.filter = filter;
+  if (sorts) params.sorts = sorts;
+
+  return client.dataSources.query(params);
 }
 
 // ============ Blocks ============
