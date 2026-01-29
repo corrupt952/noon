@@ -6,11 +6,14 @@ import { markdownFormatter, toonFormatter } from "./formatters";
 import {
   clearAllCache,
   extractTitle,
+  getDatabase,
+  getDataSourceSchema,
   getPageWithCache,
   parseNotionId,
   queryDatabase,
   search,
   slimBlock,
+  slimDatabaseSchema,
   slimQueryResults,
 } from "./notion";
 
@@ -63,6 +66,24 @@ server.tool(
 
     return {
       content: [{ type: "text", text: output }],
+    };
+  },
+);
+
+// Tool: noon_database
+server.tool(
+  "noon_database",
+  "Get Notion database schema (properties). Returns the database title and all property definitions including names, types, and available options for select/multi_select/status fields. Use this to understand the database structure before constructing queries.",
+  {
+    id: z.string().describe("Notion database ID or URL"),
+  },
+  async ({ id }) => {
+    const dbId = parseNotionId(id);
+    const database = await getDatabase(dbId);
+    const dataSource = await getDataSourceSchema(dbId);
+    const schema = slimDatabaseSchema(database, dataSource);
+    return {
+      content: [{ type: "text", text: toToon(schema) }],
     };
   },
 );

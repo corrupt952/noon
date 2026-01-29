@@ -66,6 +66,19 @@ export async function getDatabase(databaseId: string) {
   return client.databases.retrieve({ database_id: databaseId });
 }
 
+export async function getDataSourceSchema(databaseId: string) {
+  const client = await getClient();
+
+  const database = await client.databases.retrieve({ database_id: databaseId });
+  const dataSources = (database as any).data_sources;
+  if (!dataSources || dataSources.length === 0) {
+    throw new Error("Database has no data sources");
+  }
+
+  const dataSourceId = dataSources[0].id;
+  return client.dataSources.retrieve({ data_source_id: dataSourceId });
+}
+
 export async function queryDatabase(
   databaseId: string,
   filter?: object,

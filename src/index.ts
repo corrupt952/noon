@@ -3,6 +3,7 @@ import { startAuthFlow } from "./auth";
 import {
   handleCache,
   handleConfig,
+  handleDatabase,
   handleMcp,
   handlePage,
   handleQuery,
@@ -26,6 +27,7 @@ COMMANDS:
 
   search <query>    Search pages and databases
   page <id|url>     Get page info and content
+  database <id|url> Get database schema (properties)
   query <id|url>    Query database records
 
   mcp               Start as MCP server (stdio)
@@ -93,6 +95,10 @@ async function main() {
 
       case "page":
         await handlePage(commandArgs);
+        break;
+
+      case "database":
+        await handleDatabase(commandArgs);
         break;
 
       case "query":
