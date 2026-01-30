@@ -6,6 +6,7 @@ import { markdownFormatter, toonFormatter } from "./formatters";
 import {
   clearAllCache,
   extractTitle,
+  getDatabase,
   getDataSource,
   getPageWithCache,
   parseFilter,
@@ -15,7 +16,8 @@ import {
   queryDataSource,
   search,
   slimBlock,
-  slimDatabaseSchema,
+  slimDatabase,
+  slimDataSourceSchema,
   slimQueryResults,
   slimSearchResults,
 } from "./notion";
@@ -31,7 +33,7 @@ const server = new McpServer({
 // Tool: noon_search
 server.tool(
   "noon_search",
-  "Search Notion pages and databases by keyword. Returns a list of matching items with their IDs and titles. Use noon_page to get full content of a specific page. For data_source objects (databases), use noon_database or noon_query with the id.",
+  "Search Notion pages and databases by keyword. Returns a list of matching items with their IDs and titles. For data_source objects, use noon_data_source or noon_query.",
   {
     query: z.string().describe("Search keyword"),
     filter: z
@@ -81,14 +83,37 @@ server.tool(
 // Tool: noon_database
 server.tool(
   "noon_database",
-  "Get Notion database schema (properties). Returns the database title and all property definitions including names, types, and available options for select/multi_select/status fields. Use this to understand the database structure before constructing queries.",
+  "Get Notion database info and available data sources (views) from a database URL. Use the returned data_source_id with noon_data_source to get schema, or noon_query to fetch records.",
   {
-    id: z.string().describe("Notion data_source ID (from noon_search) or URL"),
+    database_id: z
+      .string()
+      .describe(
+        "Notion database ID from URL (e.g., the ID in notion.so/xxx/<database_id>)",
+      ),
   },
-  async ({ id }) => {
-    const dataSourceId = parseNotionId(id);
+  async ({ database_id }) => {
+    const databaseId = parseNotionId(database_id);
+    const database = await getDatabase(databaseId);
+    const result = slimDatabase(database);
+    return {
+      content: [{ type: "text", text: toToon(result) }],
+    };
+  },
+);
+
+// Tool: noon_data_source
+server.tool(
+  "noon_data_source",
+  "Get Notion data source schema (properties). Returns property definitions including names, types, and options. Use data_source_id from noon_search results or noon_database response.",
+  {
+    data_source_id: z
+      .string()
+      .describe("Notion data_source ID (from noon_search or noon_database)"),
+  },
+  async ({ data_source_id }) => {
+    const dataSourceId = parseNotionId(data_source_id);
     const dataSource = await getDataSource(dataSourceId);
-    const schema = slimDatabaseSchema(dataSource);
+    const schema = slimDataSourceSchema(dataSource);
     return {
       content: [{ type: "text", text: toToon(schema) }],
     };
@@ -98,9 +123,11 @@ server.tool(
 // Tool: noon_query
 server.tool(
   "noon_query",
-  "Query Notion database records with optional filtering and sorting. Use this for searching within a specific database. Returns records with IDs, titles, and URLs. Use noon_database first to get the schema (property names, types, select options) for constructing filters.",
+  "Query Notion database records with optional filtering and sorting. Returns records with IDs and titles. Use noon_data_source first to get the schema for constructing filters.",
   {
-    id: z.string().describe("Notion data_source ID (from noon_search) or URL"),
+    data_source_id: z
+      .string()
+      .describe("Notion data_source ID (from noon_search or noon_database)"),
     filter: z
       .string()
       .optional()
@@ -118,12 +145,12 @@ server.tool(
       .optional()
       .describe("Pagination cursor from previous response's next_cursor"),
   },
-  async ({ id, filter: filterJson, sorts: sortsJson, cursor }) => {
+  async ({ data_source_id, filter: filterJson, sorts: sortsJson, cursor }) => {
     try {
       const filter = filterJson ? parseFilter(filterJson) : undefined;
       const sorts = sortsJson ? parseSorts(sortsJson) : undefined;
 
-      const dataSourceId = parseNotionId(id);
+      const dataSourceId = parseNotionId(data_source_id);
       const results = await queryDataSource(
         dataSourceId,
         filter,

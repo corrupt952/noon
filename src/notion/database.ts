@@ -1,4 +1,7 @@
-import type { DataSourceObjectResponse } from "@notionhq/client";
+import type {
+  DatabaseObjectResponse,
+  DataSourceObjectResponse,
+} from "@notionhq/client";
 import { extractTitle } from "./page";
 
 export interface SlimSelectOption {
@@ -12,7 +15,18 @@ export interface SlimProperty {
   options?: SlimSelectOption[];
 }
 
-export interface SlimDatabaseSchema {
+export interface SlimDataSourceReference {
+  id: string;
+  name: string;
+}
+
+export interface SlimDatabase {
+  id: string;
+  title: string;
+  data_sources: SlimDataSourceReference[];
+}
+
+export interface SlimDataSourceSchema {
   id: string;
   title: string;
   properties: SlimProperty[];
@@ -33,31 +47,66 @@ function slimSelectOptions(
   }));
 }
 
-export function slimDatabaseSchema(
-  dataSource: DataSourceObjectResponse,
-): SlimDatabaseSchema {
+function extractProperties(
+  props: Record<
+    string,
+    {
+      type: string;
+      select?: { options: SelectOption[] };
+      multi_select?: { options: SelectOption[] };
+      status?: { options: SelectOption[] };
+    }
+  >,
+): SlimProperty[] {
   const properties: SlimProperty[] = [];
 
-  for (const [name, prop] of Object.entries(dataSource.properties)) {
+  for (const [name, prop] of Object.entries(props)) {
     const slimProp: SlimProperty = {
       name,
       type: prop.type,
     };
 
-    if (prop.type === "select") {
+    if (prop.type === "select" && prop.select) {
       slimProp.options = slimSelectOptions(prop.select.options);
-    } else if (prop.type === "multi_select") {
+    } else if (prop.type === "multi_select" && prop.multi_select) {
       slimProp.options = slimSelectOptions(prop.multi_select.options);
-    } else if (prop.type === "status") {
+    } else if (prop.type === "status" && prop.status) {
       slimProp.options = slimSelectOptions(prop.status.options);
     }
 
     properties.push(slimProp);
   }
 
+  return properties;
+}
+
+export function slimDatabase(database: DatabaseObjectResponse): SlimDatabase {
+  return {
+    id: database.id,
+    title: extractTitle(database),
+    data_sources: database.data_sources.map((ds) => ({
+      id: ds.id,
+      name: ds.name,
+    })),
+  };
+}
+
+export function slimDataSourceSchema(
+  dataSource: DataSourceObjectResponse,
+): SlimDataSourceSchema {
   return {
     id: dataSource.id,
     title: extractTitle(dataSource),
-    properties,
+    properties: extractProperties(
+      dataSource.properties as Record<
+        string,
+        {
+          type: string;
+          select?: { options: SelectOption[] };
+          multi_select?: { options: SelectOption[] };
+          status?: { options: SelectOption[] };
+        }
+      >,
+    ),
   };
 }

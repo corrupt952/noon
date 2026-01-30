@@ -79,6 +79,13 @@ export async function getPageContent(pageId: string) {
   return blocks;
 }
 
+// ============ Databases ============
+
+export async function getDatabase(databaseId: string) {
+  const client = await getClient();
+  return client.databases.retrieve({ database_id: databaseId });
+}
+
 // ============ Data Sources ============
 
 export async function getDataSource(dataSourceId: string) {
