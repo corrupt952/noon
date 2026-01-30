@@ -34,13 +34,17 @@ server.tool(
   "Search Notion pages and databases by keyword. Returns a list of matching items with their IDs and titles. Use noon_page to get full content of a specific page. For data_source objects (databases), use noon_database or noon_query with the id.",
   {
     query: z.string().describe("Search keyword"),
+    filter: z
+      .enum(["page", "data_source"])
+      .optional()
+      .describe("Filter by object type: 'page' or 'data_source'"),
     cursor: z
       .string()
       .optional()
       .describe("Pagination cursor from previous response's next_cursor"),
   },
-  async ({ query, cursor }) => {
-    const results = await search(query, undefined, cursor);
+  async ({ query, filter, cursor }) => {
+    const results = await search(query, filter, cursor);
     return {
       content: [{ type: "text", text: toToon(slimSearchResults(results)) }],
     };

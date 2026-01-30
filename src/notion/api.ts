@@ -50,7 +50,7 @@ export async function getClient(): Promise<Client> {
 
 export async function search(
   query: string,
-  filter?: "page" | "database",
+  filter?: "page" | "data_source",
   startCursor?: string,
 ) {
   const client = await getClient();
