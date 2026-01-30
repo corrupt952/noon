@@ -49,6 +49,7 @@ export const toonFormatter: PageFormatter = {
     return toToon({
       id: data.page.id,
       title: data.page.title,
+      properties: data.page.properties,
       blocks: data.blocks.map(blockToToon),
     });
   },

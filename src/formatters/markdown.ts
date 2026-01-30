@@ -1,4 +1,5 @@
 import type { RichTextItem, SlimBlock } from "../notion/block";
+import type { PropertyValue } from "../notion/page";
 import type { PageData, PageFormatter } from "./index";
 
 // Convert rich text item to markdown with annotations
@@ -106,10 +107,66 @@ function blocksToMarkdown(blocks: SlimBlock[]): string {
   return blocks.map((block) => blockToMarkdown(block)).join("\n\n");
 }
 
+// Convert property value to YAML-safe string
+function propertyValueToYaml(value: PropertyValue, indent = ""): string {
+  if (value === null) return "null";
+  if (typeof value === "boolean") return value ? "true" : "false";
+  if (typeof value === "number") return String(value);
+  if (typeof value === "string") {
+    // Quote strings with special characters or multi-line
+    if (
+      value.includes("\n") ||
+      value.includes(":") ||
+      value.includes("#") ||
+      value.includes('"') ||
+      value.includes("'") ||
+      value.startsWith(" ") ||
+      value.endsWith(" ")
+    ) {
+      // Use literal block scalar for multi-line
+      if (value.includes("\n")) {
+        const lines = value.split("\n").map((line) => `${indent}  ${line}`);
+        return `|\n${lines.join("\n")}`;
+      }
+      // Quote single-line strings with special chars
+      return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+    }
+    return value;
+  }
+  if (Array.isArray(value)) {
+    if (value.length === 0) return "[]";
+    // Simple array of primitives
+    const items = value.map((v) => propertyValueToYaml(v, indent));
+    return `[${items.join(", ")}]`;
+  }
+  return String(value);
+}
+
+// Convert properties to YAML frontmatter
+function propertiesToFrontmatter(
+  properties: Record<string, PropertyValue> | undefined,
+): string {
+  if (!properties) return "";
+  const entries = Object.entries(properties);
+  if (entries.length === 0) return "";
+
+  const lines = entries.map(([key, value]) => {
+    const yamlValue = propertyValueToYaml(value);
+    return `${key}: ${yamlValue}`;
+  });
+
+  return `---\n${lines.join("\n")}\n---`;
+}
+
 export const markdownFormatter: PageFormatter = {
   formatPage(data: PageData): string {
+    const frontmatter = propertiesToFrontmatter(data.page.properties);
     const title = `# ${data.page.title}`;
     const content = blocksToMarkdown(data.blocks);
+
+    if (frontmatter) {
+      return `${frontmatter}\n\n${title}\n\n${content}`;
+    }
     return `${title}\n\n${content}`;
   },
 };

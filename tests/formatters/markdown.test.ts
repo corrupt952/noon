@@ -3,23 +3,35 @@ import { markdownFormatter } from "../../src/formatters/markdown";
 import type { SlimBlock } from "../../src/notion/block";
 
 // Helper to format a single block through the formatter
-function formatBlocks(blocks: SlimBlock[]): string {
+function formatBlocks(
+  blocks: SlimBlock[],
+  properties: Record<string, unknown> = {},
+): string {
   return markdownFormatter.formatPage({
-    page: { id: "test", title: "Test", url: "" },
+    page: { id: "test", title: "Test", url: "", properties },
     blocks,
   });
 }
 
-// Extract just the content part (skip the title line)
+// Extract just the content part (skip frontmatter and title)
 function getContent(output: string): string {
-  return output.split("\n\n").slice(1).join("\n\n");
+  // Remove frontmatter if present
+  let content = output;
+  if (content.startsWith("---\n")) {
+    const endIndex = content.indexOf("\n---\n", 4);
+    if (endIndex !== -1) {
+      content = content.slice(endIndex + 5);
+    }
+  }
+  // Skip the title line
+  return content.split("\n\n").slice(1).join("\n\n");
 }
 
 describe("markdownFormatter", () => {
   describe("formatPage", () => {
-    test("formats page with title", () => {
+    test("formats page with title and no properties", () => {
       const result = markdownFormatter.formatPage({
-        page: { id: "1", title: "My Page", url: "" },
+        page: { id: "1", title: "My Page", url: "", properties: {} },
         blocks: [],
       });
       expect(result).toBe("# My Page\n\n");
@@ -27,10 +39,158 @@ describe("markdownFormatter", () => {
 
     test("formats page with title and content", () => {
       const result = markdownFormatter.formatPage({
-        page: { id: "1", title: "My Page", url: "" },
+        page: { id: "1", title: "My Page", url: "", properties: {} },
         blocks: [{ type: "paragraph", richText: [{ text: "Hello" }] }],
       });
       expect(result).toBe("# My Page\n\nHello");
+    });
+
+    test("formats page with undefined properties", () => {
+      const result = markdownFormatter.formatPage({
+        page: { id: "1", title: "My Page", url: "" } as any,
+        blocks: [],
+      });
+      expect(result).toBe("# My Page\n\n");
+    });
+  });
+
+  describe("frontmatter", () => {
+    test("includes frontmatter when properties exist", () => {
+      const result = markdownFormatter.formatPage({
+        page: {
+          id: "1",
+          title: "My Page",
+          url: "",
+          properties: { Status: "Done", Priority: "High" },
+        },
+        blocks: [],
+      });
+      expect(result).toContain("---\n");
+      expect(result).toContain("Status: Done");
+      expect(result).toContain("Priority: High");
+      expect(result).toContain("\n---\n");
+    });
+
+    test("formats string values", () => {
+      const result = markdownFormatter.formatPage({
+        page: {
+          id: "1",
+          title: "T",
+          url: "",
+          properties: { Status: "In Progress" },
+        },
+        blocks: [],
+      });
+      expect(result).toContain("Status: In Progress");
+    });
+
+    test("formats number values", () => {
+      const result = markdownFormatter.formatPage({
+        page: { id: "1", title: "T", url: "", properties: { Price: 1500 } },
+        blocks: [],
+      });
+      expect(result).toContain("Price: 1500");
+    });
+
+    test("formats boolean values", () => {
+      const result = markdownFormatter.formatPage({
+        page: {
+          id: "1",
+          title: "T",
+          url: "",
+          properties: { Done: true, Active: false },
+        },
+        blocks: [],
+      });
+      expect(result).toContain("Done: true");
+      expect(result).toContain("Active: false");
+    });
+
+    test("formats null values", () => {
+      const result = markdownFormatter.formatPage({
+        page: { id: "1", title: "T", url: "", properties: { Due: null } },
+        blocks: [],
+      });
+      expect(result).toContain("Due: null");
+    });
+
+    test("formats array values", () => {
+      const result = markdownFormatter.formatPage({
+        page: {
+          id: "1",
+          title: "T",
+          url: "",
+          properties: { Tags: ["Bug", "High"] },
+        },
+        blocks: [],
+      });
+      expect(result).toContain("Tags: [Bug, High]");
+    });
+
+    test("formats empty array", () => {
+      const result = markdownFormatter.formatPage({
+        page: { id: "1", title: "T", url: "", properties: { Tags: [] } },
+        blocks: [],
+      });
+      expect(result).toContain("Tags: []");
+    });
+
+    test("quotes strings with special characters", () => {
+      const result = markdownFormatter.formatPage({
+        page: {
+          id: "1",
+          title: "T",
+          url: "",
+          properties: { Note: "Hello: World" },
+        },
+        blocks: [],
+      });
+      expect(result).toContain('Note: "Hello: World"');
+    });
+
+    test("uses literal block for multi-line strings", () => {
+      const result = markdownFormatter.formatPage({
+        page: {
+          id: "1",
+          title: "T",
+          url: "",
+          properties: { Description: "Line 1\nLine 2\nLine 3" },
+        },
+        blocks: [],
+      });
+      expect(result).toContain("Description: |");
+      expect(result).toContain("Line 1");
+      expect(result).toContain("Line 2");
+    });
+
+    test("frontmatter appears before title", () => {
+      const result = markdownFormatter.formatPage({
+        page: {
+          id: "1",
+          title: "My Page",
+          url: "",
+          properties: { Status: "Done" },
+        },
+        blocks: [],
+      });
+      const frontmatterEnd = result.indexOf("\n---\n");
+      const titleStart = result.indexOf("# My Page");
+      expect(frontmatterEnd).toBeLessThan(titleStart);
+    });
+
+    test("complete page structure with frontmatter", () => {
+      const result = markdownFormatter.formatPage({
+        page: {
+          id: "1",
+          title: "Task Title",
+          url: "",
+          properties: { Status: "Done", Tags: ["Important"] },
+        },
+        blocks: [{ type: "paragraph", richText: [{ text: "Content here" }] }],
+      });
+      expect(result).toBe(
+        "---\nStatus: Done\nTags: [Important]\n---\n\n# Task Title\n\nContent here",
+      );
     });
   });
 

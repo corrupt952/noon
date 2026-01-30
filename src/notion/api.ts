@@ -9,7 +9,7 @@ import { refreshToken, startAuthFlow } from "../auth";
 import { getToken, isTokenExpired, type TokenData } from "../config";
 import type { SlimBlock } from "./block";
 import { type CachedPage, getCache, isCacheValid, saveCache } from "./cache";
-import type { SlimPage } from "./page";
+import { extractProperties, type SlimPage } from "./page";
 
 let notionClient: Client | null = null;
 
@@ -204,6 +204,7 @@ export async function getPageWithCache(
     id: page.id,
     title: extractTitleFn(page),
     url: page.url,
+    properties: extractProperties(page.properties),
   };
 
   // Step 5: Save to cache

@@ -5,7 +5,7 @@ describe("toonFormatter", () => {
   describe("formatPage", () => {
     test("formats empty page", () => {
       const result = toonFormatter.formatPage({
-        page: { id: "page-1", title: "Empty Page", url: "" },
+        page: { id: "page-1", title: "Empty Page", url: "", properties: {} },
         blocks: [],
       });
       // Toon format is a compact text format
@@ -15,7 +15,7 @@ describe("toonFormatter", () => {
 
     test("formats page with paragraph", () => {
       const result = toonFormatter.formatPage({
-        page: { id: "page-1", title: "Test", url: "" },
+        page: { id: "page-1", title: "Test", url: "", properties: {} },
         blocks: [{ type: "paragraph", richText: [{ text: "Hello World" }] }],
       });
       expect(result).toContain("paragraph");
@@ -24,7 +24,7 @@ describe("toonFormatter", () => {
 
     test("formats page with multiple blocks", () => {
       const result = toonFormatter.formatPage({
-        page: { id: "page-1", title: "Test", url: "" },
+        page: { id: "page-1", title: "Test", url: "", properties: {} },
         blocks: [
           { type: "heading_1", richText: [{ text: "Title" }] },
           { type: "paragraph", richText: [{ text: "Content" }] },
@@ -37,10 +37,86 @@ describe("toonFormatter", () => {
     });
   });
 
+  describe("properties", () => {
+    test("includes properties in output", () => {
+      const result = toonFormatter.formatPage({
+        page: {
+          id: "page-1",
+          title: "Test",
+          url: "",
+          properties: { Status: "Done", Priority: "High" },
+        },
+        blocks: [],
+      });
+      expect(result).toContain("properties");
+      expect(result).toContain("Status");
+      expect(result).toContain("Done");
+      expect(result).toContain("Priority");
+      expect(result).toContain("High");
+    });
+
+    test("includes array properties", () => {
+      const result = toonFormatter.formatPage({
+        page: {
+          id: "page-1",
+          title: "Test",
+          url: "",
+          properties: { Tags: ["Bug", "Urgent"] },
+        },
+        blocks: [],
+      });
+      expect(result).toContain("Tags");
+      expect(result).toContain("Bug");
+      expect(result).toContain("Urgent");
+    });
+
+    test("includes null properties", () => {
+      const result = toonFormatter.formatPage({
+        page: {
+          id: "page-1",
+          title: "Test",
+          url: "",
+          properties: { Due: null },
+        },
+        blocks: [],
+      });
+      expect(result).toContain("Due");
+      expect(result).toContain("null");
+    });
+
+    test("includes boolean properties", () => {
+      const result = toonFormatter.formatPage({
+        page: {
+          id: "page-1",
+          title: "Test",
+          url: "",
+          properties: { Done: true },
+        },
+        blocks: [],
+      });
+      expect(result).toContain("Done");
+      expect(result).toContain("true");
+    });
+
+    test("includes number properties", () => {
+      const result = toonFormatter.formatPage({
+        page: {
+          id: "page-1",
+          title: "Test",
+          url: "",
+          properties: { Price: 1500 },
+        },
+        blocks: [],
+      });
+      expect(result).toContain("Price");
+      expect(result).toContain("1500");
+    });
+  });
+
   describe("block conversion", () => {
     test("includes text from richText", () => {
       const result = toonFormatter.formatPage({
-        page: { id: "1", title: "T", url: "" },
+        page: { id: "1", title: "T", url: "", properties: {} },
         blocks: [
           {
             type: "paragraph",
@@ -53,7 +129,7 @@ describe("toonFormatter", () => {
 
     test("includes checked status for to_do", () => {
       const result = toonFormatter.formatPage({
-        page: { id: "1", title: "T", url: "" },
+        page: { id: "1", title: "T", url: "", properties: {} },
         blocks: [
           { type: "to_do", richText: [{ text: "Task" }], checked: true },
         ],
@@ -64,7 +140,7 @@ describe("toonFormatter", () => {
 
     test("includes language for code blocks", () => {
       const result = toonFormatter.formatPage({
-        page: { id: "1", title: "T", url: "" },
+        page: { id: "1", title: "T", url: "", properties: {} },
         blocks: [
           {
             type: "code",
@@ -78,7 +154,7 @@ describe("toonFormatter", () => {
 
     test("includes url for media blocks", () => {
       const result = toonFormatter.formatPage({
-        page: { id: "1", title: "T", url: "" },
+        page: { id: "1", title: "T", url: "", properties: {} },
         blocks: [{ type: "image", url: "https://example.com/img.png" }],
       });
       expect(result).toContain("https://example.com/img.png");
@@ -86,7 +162,7 @@ describe("toonFormatter", () => {
 
     test("includes title for child_page", () => {
       const result = toonFormatter.formatPage({
-        page: { id: "1", title: "T", url: "" },
+        page: { id: "1", title: "T", url: "", properties: {} },
         blocks: [{ type: "child_page", title: "Subpage" }],
       });
       expect(result).toContain("Subpage");
@@ -94,7 +170,7 @@ describe("toonFormatter", () => {
 
     test("includes nested children", () => {
       const result = toonFormatter.formatPage({
-        page: { id: "1", title: "T", url: "" },
+        page: { id: "1", title: "T", url: "", properties: {} },
         blocks: [
           {
             type: "bulleted_list_item",
@@ -114,7 +190,7 @@ describe("toonFormatter", () => {
   describe("rich text to plain text", () => {
     test("strips annotations and keeps only text", () => {
       const result = toonFormatter.formatPage({
-        page: { id: "1", title: "T", url: "" },
+        page: { id: "1", title: "T", url: "", properties: {} },
         blocks: [
           {
             type: "paragraph",
@@ -134,7 +210,7 @@ describe("toonFormatter", () => {
 
     test("handles empty richText", () => {
       const result = toonFormatter.formatPage({
-        page: { id: "1", title: "T", url: "" },
+        page: { id: "1", title: "T", url: "", properties: {} },
         blocks: [{ type: "divider" }],
       });
       expect(result).toContain("divider");
