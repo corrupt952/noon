@@ -1,10 +1,31 @@
 {
   "name": "nooon",
   "version": "0.7.0",
+  "description": "Lightweight, read-only Notion MCP Server optimized for token efficiency",
   "type": "module",
   "bin": {
     "nooon": "./dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/corrupt952/nooon.git"
+  },
+  "keywords": [
+    "notion",
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "ai"
+  ],
+  "author": "corrupt952",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/corrupt952/nooon/issues"
+  },
+  "homepage": "https://github.com/corrupt952/nooon#readme",
   "scripts": {
     "build": "bun build src/index.ts --outdir dist --target bun --define \"PKG_VERSION='$(jq -r .version package.json)'\"",
     "compile": "bun build --compile src/index.ts --outfile nooon --define \"PKG_VERSION='$(jq -r .version package.json)'\" --define \"__EMBEDDED_CLIENT_ID__='$NOTION_CLIENT_ID'\" --define \"__EMBEDDED_CLIENT_SECRET__='$NOTION_CLIENT_SECRET'\"",
