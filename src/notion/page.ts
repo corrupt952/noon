@@ -26,7 +26,6 @@ interface SlimSearchResponse {
 interface SlimQueryResult {
   id: string;
   title: string;
-  url: string;
 }
 
 interface SlimQueryResponse {
@@ -120,7 +119,6 @@ export function slimQueryResults(
     results: results.results.map((item) => ({
       id: item.id,
       title: extractTitle(item),
-      url: "url" in item ? item.url : "",
     })),
     has_more: results.has_more,
     next_cursor: results.next_cursor ?? null,

@@ -181,8 +181,8 @@ describe("slimQueryResults", () => {
     };
     expect(slimQueryResults(results)).toEqual({
       results: [
-        { id: "record-1", title: "Task 1", url: "https://notion.so/record-1" },
-        { id: "record-2", title: "Task 2", url: "https://notion.so/record-2" },
+        { id: "record-1", title: "Task 1" },
+        { id: "record-2", title: "Task 2" },
       ],
       has_more: false,
       next_cursor: null,
