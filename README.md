@@ -75,7 +75,8 @@ bunx nooon status
 |------|-------------|
 | `nooon_search` | Search pages and databases by keyword |
 | `nooon_page` | Get page content with nested blocks (cached) |
-| `nooon_database` | Get database schema |
+| `nooon_database` | Get database schema and available views |
+| `nooon_data_source` | Get data source schema (property definitions) |
 | `nooon_query` | Query database with filter/sort |
 | `nooon_clear_cache` | Clear cached pages |
 
