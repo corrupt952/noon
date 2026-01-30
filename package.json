@@ -4,7 +4,7 @@
   "description": "Lightweight, read-only Notion MCP Server optimized for token efficiency",
   "type": "module",
   "bin": {
-    "nooon": "./dist/index.js"
+    "nooon": "dist/index.js"
   },
   "files": [
     "dist"
