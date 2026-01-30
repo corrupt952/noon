@@ -8,9 +8,15 @@ Lightweight, read-only Notion MCP Server optimized for token efficiency.
 - Minimal output using [TOON format](https://github.com/toon-format/toon)
 - Smart caching based on `last_edited_time`
 - Recursive block fetching in a single call
-- Pre-built binaries for macOS and Linux
 
 ## Installation
+
+```bash
+bunx nooon
+```
+
+<details>
+<summary>Manual Install (Pre-built binaries)</summary>
 
 Download from [Releases](https://github.com/corrupt952/nooon/releases):
 
@@ -28,6 +34,8 @@ curl -L https://github.com/corrupt952/nooon/releases/latest/download/nooon-linux
 curl -L https://github.com/corrupt952/nooon/releases/latest/download/nooon-linux-arm64 -o nooon && chmod +x nooon
 ```
 
+</details>
+
 ## Authentication
 
 Choose one of the following methods:
@@ -41,8 +49,8 @@ export NOTION_TOKEN=ntn_xxx
 **OAuth (Interactive)**
 
 ```bash
-nooon config --client-id <id> --client-secret <secret>
-nooon auth
+bunx nooon config --client-id <id> --client-secret <secret>
+bunx nooon auth
 ```
 
 Get credentials from [Notion Integrations](https://www.notion.so/my-integrations).
@@ -52,13 +60,13 @@ Get credentials from [Notion Integrations](https://www.notion.so/my-integrations
 Register with Claude Code:
 
 ```bash
-eval $(nooon mcp install)
+eval $(bunx nooon mcp install)
 ```
 
 Check status:
 
 ```bash
-nooon status
+bunx nooon status
 ```
 
 ## MCP Tools
@@ -74,14 +82,14 @@ nooon status
 ## CLI Reference
 
 ```
-nooon auth              Start OAuth flow
-nooon logout            Clear credentials
-nooon status            Show auth status
-nooon config            Configure OAuth credentials
-nooon cache clear       Clear page cache
-nooon mcp               Start MCP server
-nooon mcp install       Output claude mcp add command
-nooon mcp config        Output mcpServers JSON
+bunx nooon auth              Start OAuth flow
+bunx nooon logout            Clear credentials
+bunx nooon status            Show auth status
+bunx nooon config            Configure OAuth credentials
+bunx nooon cache clear       Clear page cache
+bunx nooon mcp               Start MCP server
+bunx nooon mcp install       Output claude mcp add command
+bunx nooon mcp config        Output mcpServers JSON
 ```
 
 ## Building from Source
@@ -91,7 +99,7 @@ bun install
 bun run compile
 ```
 
-For team distribution (users only need to run `nooon auth`, no integration setup required):
+For team distribution (users only need to run `bunx nooon auth`, no integration setup required):
 
 ```bash
 NOTION_CLIENT_ID=xxx NOTION_CLIENT_SECRET=xxx bun run compile
