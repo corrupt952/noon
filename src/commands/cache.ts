@@ -16,6 +16,6 @@ export async function handleCache(args: string[]): Promise<void> {
   if (subcommand) {
     console.error(`Unknown cache subcommand: ${subcommand}`);
   }
-  console.log("Usage: noon cache clear");
+  console.log("Usage: nooon cache clear");
   process.exit(1);
 }

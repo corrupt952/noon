@@ -6,10 +6,10 @@ import { clearToken } from "./config";
 declare const PKG_VERSION: string;
 
 const HELP = `
-noon - Notion MCP Server
+nooon - Notion MCP Server
 
 USAGE:
-  noon <command> [options]
+  nooon <command> [options]
 
 COMMANDS:
   auth              Start OAuth authentication flow
@@ -28,9 +28,9 @@ OPTIONS:
   --version, -v     Show version
 
 EXAMPLES:
-  noon auth
-  noon mcp
-  noon mcp install
+  nooon auth
+  nooon mcp
+  nooon mcp install
 `;
 
 async function main() {
@@ -85,7 +85,7 @@ async function main() {
 
       default:
         console.error(`Unknown command: ${command}`);
-        console.log("Run 'noon --help' for usage");
+        console.log("Run 'nooon --help' for usage");
         process.exit(1);
     }
   } catch (error) {

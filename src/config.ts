@@ -16,7 +16,7 @@ export interface Config {
   token?: TokenData;
 }
 
-const CONFIG_DIR = join(homedir(), ".config", "noon");
+const CONFIG_DIR = join(homedir(), ".config", "nooon");
 const CONFIG_FILE = join(CONFIG_DIR, "config.json");
 
 function ensureConfigDir(): void {

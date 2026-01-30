@@ -13,7 +13,7 @@ export async function handleStatus(): Promise<void> {
   const credentials = getClientCredentials();
   const source = getCredentialsSource();
 
-  console.log("=== noon Status ===\n");
+  console.log("=== nooon Status ===\n");
 
   // API Token takes priority
   if (apiToken) {
@@ -27,7 +27,7 @@ export async function handleStatus(): Promise<void> {
   } else {
     console.log("❌ Client credentials not configured");
     console.log(
-      "   Run: noon config --client-id <id> --client-secret <secret>",
+      "   Run: nooon config --client-id <id> --client-secret <secret>",
     );
   }
 
@@ -46,6 +46,6 @@ export async function handleStatus(): Promise<void> {
     }
   } else {
     console.log("❌ Not authenticated");
-    console.log("   Run: noon auth");
+    console.log("   Run: nooon auth");
   }
 }

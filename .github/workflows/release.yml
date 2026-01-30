@@ -15,16 +15,16 @@ jobs:
         include:
           - os: ubuntu-latest
             target: bun-linux-x64
-            artifact: noon-linux-x64
+            artifact: nooon-linux-x64
           - os: ubuntu-latest
             target: bun-linux-arm64
-            artifact: noon-linux-arm64
+            artifact: nooon-linux-arm64
           - os: macos-latest
             target: bun-darwin-x64
-            artifact: noon-darwin-x64
+            artifact: nooon-darwin-x64
           - os: macos-latest
             target: bun-darwin-arm64
-            artifact: noon-darwin-arm64
+            artifact: nooon-darwin-arm64
 
     runs-on: ${{ matrix.os }}
 
@@ -67,7 +67,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/noon-linux-x64/noon-linux-x64
-            artifacts/noon-linux-arm64/noon-linux-arm64
-            artifacts/noon-darwin-x64/noon-darwin-x64
-            artifacts/noon-darwin-arm64/noon-darwin-arm64
+            artifacts/nooon-linux-x64/nooon-linux-x64
+            artifacts/nooon-linux-arm64/nooon-linux-arm64
+            artifacts/nooon-darwin-x64/nooon-darwin-x64
+            artifacts/nooon-darwin-arm64/nooon-darwin-arm64

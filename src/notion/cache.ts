@@ -20,7 +20,7 @@ export interface CachedPage {
   blocks: SlimBlock[];
 }
 
-const CACHE_DIR = join(homedir(), ".cache", "noon", "pages");
+const CACHE_DIR = join(homedir(), ".cache", "nooon", "pages");
 
 function ensureCacheDir(): void {
   if (!existsSync(CACHE_DIR)) {

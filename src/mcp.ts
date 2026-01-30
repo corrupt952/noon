@@ -26,14 +26,14 @@ declare const PKG_VERSION: string;
 
 // Create MCP Server
 const server = new McpServer({
-  name: "noon",
+  name: "nooon",
   version: PKG_VERSION,
 });
 
-// Tool: noon_search
+// Tool: nooon_search
 server.tool(
-  "noon_search",
-  "Search Notion pages and databases by keyword. Returns a list of matching items with their IDs and titles. For data_source objects, use noon_data_source or noon_query.",
+  "nooon_search",
+  "Search Notion pages and databases by keyword. Returns a list of matching items with their IDs and titles. For data_source objects, use nooon_data_source or nooon_query.",
   {
     query: z.string().describe("Search keyword"),
     filter: z
@@ -53,9 +53,9 @@ server.tool(
   },
 );
 
-// Tool: noon_page
+// Tool: nooon_page
 server.tool(
-  "noon_page",
+  "nooon_page",
   "Get Notion page info and content with nested blocks. Returns the page title and all blocks (paragraphs, headings, lists, code blocks, etc.) including nested content. Results are cached based on last_edited_time. Use format='markdown' for human-readable output.",
   {
     id: z.string().describe("Notion page ID or URL"),
@@ -80,10 +80,10 @@ server.tool(
   },
 );
 
-// Tool: noon_database
+// Tool: nooon_database
 server.tool(
-  "noon_database",
-  "Get Notion database info and available data sources (views) from a database URL. Use the returned data_source_id with noon_data_source to get schema, or noon_query to fetch records.",
+  "nooon_database",
+  "Get Notion database info and available data sources (views) from a database URL. Use the returned data_source_id with nooon_data_source to get schema, or nooon_query to fetch records.",
   {
     database_id: z
       .string()
@@ -101,14 +101,14 @@ server.tool(
   },
 );
 
-// Tool: noon_data_source
+// Tool: nooon_data_source
 server.tool(
-  "noon_data_source",
-  "Get Notion data source schema (properties). Returns property definitions including names, types, and options. Use data_source_id from noon_search results or noon_database response.",
+  "nooon_data_source",
+  "Get Notion data source schema (properties). Returns property definitions including names, types, and options. Use data_source_id from nooon_search results or nooon_database response.",
   {
     data_source_id: z
       .string()
-      .describe("Notion data_source ID (from noon_search or noon_database)"),
+      .describe("Notion data_source ID (from nooon_search or nooon_database)"),
   },
   async ({ data_source_id }) => {
     const dataSourceId = parseNotionId(data_source_id);
@@ -120,14 +120,14 @@ server.tool(
   },
 );
 
-// Tool: noon_query
+// Tool: nooon_query
 server.tool(
-  "noon_query",
-  "Query Notion database records with optional filtering and sorting. Returns records with IDs and titles. Use noon_data_source first to get the schema for constructing filters.",
+  "nooon_query",
+  "Query Notion database records with optional filtering and sorting. Returns records with IDs and titles. Use nooon_data_source first to get the schema for constructing filters.",
   {
     data_source_id: z
       .string()
-      .describe("Notion data_source ID (from noon_search or noon_database)"),
+      .describe("Notion data_source ID (from nooon_search or nooon_database)"),
     filter: z
       .string()
       .optional()
@@ -172,9 +172,9 @@ server.tool(
   },
 );
 
-// Tool: noon_clear_cache
+// Tool: nooon_clear_cache
 server.tool(
-  "noon_clear_cache",
+  "nooon_clear_cache",
   "Clear all cached Notion pages. Use this when you need to force fresh data from Notion API or to free up disk space.",
   {},
   async () => {
@@ -191,5 +191,5 @@ server.tool(
 export async function startMcpServer(): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("noon MCP server started");
+  console.error("nooon MCP server started");
 }

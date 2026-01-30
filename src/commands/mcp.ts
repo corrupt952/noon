@@ -11,8 +11,8 @@ export async function handleMcp(args: string[]): Promise<void> {
       const scope = isLocal ? "local" : "user";
       // If running as compiled binary, use execPath; otherwise use bun + script
       const command = scriptPath.endsWith(".ts")
-        ? `claude mcp add noon --scope ${scope} -- bun run ${scriptPath} mcp`
-        : `claude mcp add noon --scope ${scope} -- ${execPath} mcp`;
+        ? `claude mcp add nooon --scope ${scope} -- bun run ${scriptPath} mcp`
+        : `claude mcp add nooon --scope ${scope} -- ${execPath} mcp`;
       console.log(command);
       break;
     }
@@ -23,7 +23,7 @@ export async function handleMcp(args: string[]): Promise<void> {
       const config = scriptPath.endsWith(".ts")
         ? {
             mcpServers: {
-              noon: {
+              nooon: {
                 command: "bun",
                 args: ["run", scriptPath, "mcp"],
               },
@@ -31,7 +31,7 @@ export async function handleMcp(args: string[]): Promise<void> {
           }
         : {
             mcpServers: {
-              noon: {
+              nooon: {
                 command: execPath,
                 args: ["mcp"],
               },

@@ -1,4 +1,4 @@
-# noon
+# nooon
 
 Lightweight, read-only Notion MCP Server optimized for token efficiency.
 
@@ -12,20 +12,20 @@ Lightweight, read-only Notion MCP Server optimized for token efficiency.
 
 ## Installation
 
-Download from [Releases](https://github.com/corrupt952/noon/releases):
+Download from [Releases](https://github.com/corrupt952/nooon/releases):
 
 ```bash
 # macOS (Apple Silicon)
-curl -L https://github.com/corrupt952/noon/releases/latest/download/noon-darwin-arm64 -o noon && chmod +x noon
+curl -L https://github.com/corrupt952/nooon/releases/latest/download/nooon-darwin-arm64 -o nooon && chmod +x nooon
 
 # macOS (Intel)
-curl -L https://github.com/corrupt952/noon/releases/latest/download/noon-darwin-x64 -o noon && chmod +x noon
+curl -L https://github.com/corrupt952/nooon/releases/latest/download/nooon-darwin-x64 -o nooon && chmod +x nooon
 
 # Linux (x64)
-curl -L https://github.com/corrupt952/noon/releases/latest/download/noon-linux-x64 -o noon && chmod +x noon
+curl -L https://github.com/corrupt952/nooon/releases/latest/download/nooon-linux-x64 -o nooon && chmod +x nooon
 
 # Linux (arm64)
-curl -L https://github.com/corrupt952/noon/releases/latest/download/noon-linux-arm64 -o noon && chmod +x noon
+curl -L https://github.com/corrupt952/nooon/releases/latest/download/nooon-linux-arm64 -o nooon && chmod +x nooon
 ```
 
 ## Authentication
@@ -41,8 +41,8 @@ export NOTION_TOKEN=ntn_xxx
 **OAuth (Interactive)**
 
 ```bash
-noon config --client-id <id> --client-secret <secret>
-noon auth
+nooon config --client-id <id> --client-secret <secret>
+nooon auth
 ```
 
 Get credentials from [Notion Integrations](https://www.notion.so/my-integrations).
@@ -52,36 +52,36 @@ Get credentials from [Notion Integrations](https://www.notion.so/my-integrations
 Register with Claude Code:
 
 ```bash
-eval $(noon mcp install)
+eval $(nooon mcp install)
 ```
 
 Check status:
 
 ```bash
-noon status
+nooon status
 ```
 
 ## MCP Tools
 
 | Tool | Description |
 |------|-------------|
-| `noon_search` | Search pages and databases by keyword |
-| `noon_page` | Get page content with nested blocks (cached) |
-| `noon_database` | Get database schema |
-| `noon_query` | Query database with filter/sort |
-| `noon_clear_cache` | Clear cached pages |
+| `nooon_search` | Search pages and databases by keyword |
+| `nooon_page` | Get page content with nested blocks (cached) |
+| `nooon_database` | Get database schema |
+| `nooon_query` | Query database with filter/sort |
+| `nooon_clear_cache` | Clear cached pages |
 
 ## CLI Reference
 
 ```
-noon auth              Start OAuth flow
-noon logout            Clear credentials
-noon status            Show auth status
-noon config            Configure OAuth credentials
-noon cache clear       Clear page cache
-noon mcp               Start MCP server
-noon mcp install       Output claude mcp add command
-noon mcp config        Output mcpServers JSON
+nooon auth              Start OAuth flow
+nooon logout            Clear credentials
+nooon status            Show auth status
+nooon config            Configure OAuth credentials
+nooon cache clear       Clear page cache
+nooon mcp               Start MCP server
+nooon mcp install       Output claude mcp add command
+nooon mcp config        Output mcpServers JSON
 ```
 
 ## Building from Source
@@ -91,7 +91,7 @@ bun install
 bun run compile
 ```
 
-For team distribution (users only need to run `noon auth`, no integration setup required):
+For team distribution (users only need to run `nooon auth`, no integration setup required):
 
 ```bash
 NOTION_CLIENT_ID=xxx NOTION_CLIENT_SECRET=xxx bun run compile
