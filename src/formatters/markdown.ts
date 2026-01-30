@@ -81,10 +81,10 @@ function blockToMarkdown(block: SlimBlock, indent: string = ""): string {
       result = block.url || "";
       break;
     case "child_page":
-      result = `📄 ${block.title}`;
+      result = `📄 ${block.title} (${block.id})`;
       break;
     case "child_database":
-      result = `📊 ${block.title}`;
+      result = `📊 ${block.title} (${block.id})`;
       break;
     default:
       result = text || "";

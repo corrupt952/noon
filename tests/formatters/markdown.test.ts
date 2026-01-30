@@ -356,16 +356,18 @@ describe("markdownFormatter", () => {
 
     test("formats child_page", () => {
       const content = getContent(
-        formatBlocks([{ type: "child_page", title: "Subpage" }]),
+        formatBlocks([{ type: "child_page", id: "abc123", title: "Subpage" }]),
       );
-      expect(content).toBe("📄 Subpage");
+      expect(content).toBe("📄 Subpage (abc123)");
     });
 
     test("formats child_database", () => {
       const content = getContent(
-        formatBlocks([{ type: "child_database", title: "My Database" }]),
+        formatBlocks([
+          { type: "child_database", id: "def456", title: "My Database" },
+        ]),
       );
-      expect(content).toBe("📊 My Database");
+      expect(content).toBe("📊 My Database (def456)");
     });
   });
 

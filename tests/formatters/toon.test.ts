@@ -215,5 +215,107 @@ describe("toonFormatter", () => {
       });
       expect(result).toContain("divider");
     });
+
+    test("preserves links in rich text", () => {
+      const result = toonFormatter.formatPage({
+        page: { id: "1", title: "T", url: "", properties: {} },
+        blocks: [
+          {
+            type: "bulleted_list_item",
+            richText: [
+              { text: "Check out ", href: null },
+              { text: "this link", href: "https://example.com" },
+            ],
+          },
+        ],
+      });
+      expect(result).toContain("Check out this link");
+      expect(result).toContain("https://example.com");
+    });
+
+    test("handles multiple links in same block", () => {
+      const result = toonFormatter.formatPage({
+        page: { id: "1", title: "T", url: "", properties: {} },
+        blocks: [
+          {
+            type: "paragraph",
+            richText: [
+              { text: "Visit ", href: null },
+              { text: "Google", href: "https://google.com" },
+              { text: " or ", href: null },
+              { text: "GitHub", href: "https://github.com" },
+            ],
+          },
+        ],
+      });
+      expect(result).toContain("Visit Google or GitHub");
+      expect(result).toContain("https://google.com");
+      expect(result).toContain("https://github.com");
+    });
+
+    test("handles link-only text (no plain text)", () => {
+      const result = toonFormatter.formatPage({
+        page: { id: "1", title: "T", url: "", properties: {} },
+        blocks: [
+          {
+            type: "bulleted_list_item",
+            richText: [
+              { text: "Moneyforward ME", href: "https://moneyforward.com/" },
+            ],
+          },
+        ],
+      });
+      expect(result).toContain("Moneyforward ME");
+      expect(result).toContain("https://moneyforward.com/");
+    });
+  });
+
+  describe("child_page and child_database with id", () => {
+    test("includes id for child_page", () => {
+      const result = toonFormatter.formatPage({
+        page: { id: "1", title: "T", url: "", properties: {} },
+        blocks: [{ type: "child_page", id: "abc-123", title: "Subpage" }],
+      });
+      expect(result).toContain("child_page");
+      expect(result).toContain("abc-123");
+      expect(result).toContain("Subpage");
+    });
+
+    test("includes id for child_database", () => {
+      const result = toonFormatter.formatPage({
+        page: { id: "1", title: "T", url: "", properties: {} },
+        blocks: [
+          { type: "child_database", id: "def-456", title: "My Database" },
+        ],
+      });
+      expect(result).toContain("child_database");
+      expect(result).toContain("def-456");
+      expect(result).toContain("My Database");
+    });
+
+    test("includes id in nested child_database", () => {
+      const result = toonFormatter.formatPage({
+        page: { id: "1", title: "T", url: "", properties: {} },
+        blocks: [
+          {
+            type: "column_list",
+            children: [
+              {
+                type: "column",
+                children: [
+                  {
+                    type: "child_database",
+                    id: "nested-db-id",
+                    title: "Nested DB",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+      expect(result).toContain("nested-db-id");
+      expect(result).toContain("Nested DB");
+    });
   });
 });

@@ -35,6 +35,7 @@ export function slimRichText(richText: RichTextItemResponse[]): RichTextItem[] {
 
 export interface SlimBlock {
   type: string;
+  id?: string;
   richText?: RichTextItem[];
   checked?: boolean;
   language?: string;
@@ -124,9 +125,9 @@ export function slimBlock(block: BlockObjectResponse): SlimBlock {
     case "template":
       return base;
     case "child_page":
-      return { ...base, title: block.child_page.title };
+      return { ...base, id: block.id, title: block.child_page.title };
     case "child_database":
-      return { ...base, title: block.child_database.title };
+      return { ...base, id: block.id, title: block.child_database.title };
     default:
       return base;
   }

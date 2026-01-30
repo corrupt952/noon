@@ -2,14 +2,29 @@ import { encode as toToon } from "@toon-format/toon";
 import type { RichTextItem, SlimBlock } from "../notion/block";
 import type { PageData, PageFormatter } from "./index";
 
+interface ToonLink {
+  text: string;
+  href: string;
+}
+
 interface ToonBlock {
   type: string;
+  id?: string;
   text?: string;
+  links?: ToonLink[];
   checked?: boolean;
   language?: string;
   url?: string;
   title?: string;
   children?: ToonBlock[];
+}
+
+// Extract links from rich text
+function extractLinks(richText?: RichTextItem[]): ToonLink[] {
+  if (!richText) return [];
+  return richText
+    .filter((item) => item.href)
+    .map((item) => ({ text: item.text, href: item.href as string }));
 }
 
 // Convert rich text to plain text
@@ -18,12 +33,19 @@ function richTextToPlain(richText?: RichTextItem[]): string {
   return richText.map((item) => item.text).join("");
 }
 
-// Convert SlimBlock to toon-friendly format (plain text only)
+// Convert SlimBlock to toon-friendly format
 function blockToToon(block: SlimBlock): ToonBlock {
   const result: ToonBlock = { type: block.type };
 
+  if (block.id) {
+    result.id = block.id;
+  }
   if (block.richText) {
     result.text = richTextToPlain(block.richText);
+    const links = extractLinks(block.richText);
+    if (links.length > 0) {
+      result.links = links;
+    }
   }
   if (block.checked !== undefined) {
     result.checked = block.checked;
