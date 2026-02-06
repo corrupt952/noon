@@ -1,6 +1,6 @@
 {
   "name": "nooon",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Lightweight, read-only Notion MCP Server optimized for token efficiency",
   "type": "module",
   "bin": {
