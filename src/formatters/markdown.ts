@@ -102,9 +102,30 @@ function blockToMarkdown(block: SlimBlock, indent: string = ""): string {
   return result;
 }
 
+const LIST_BLOCK_TYPES: ReadonlySet<string> = new Set([
+  "bulleted_list_item",
+  "numbered_list_item",
+  "to_do",
+  "toggle",
+]);
+
 // Convert blocks array to markdown
 function blocksToMarkdown(blocks: SlimBlock[]): string {
-  return blocks.map((block) => blockToMarkdown(block)).join("\n");
+  if (blocks.length === 0) return "";
+  const parts: string[] = [];
+  for (let i = 0; i < blocks.length; i++) {
+    if (i > 0) {
+      const prev = blocks[i - 1];
+      const curr = blocks[i];
+      const sep =
+        LIST_BLOCK_TYPES.has(prev.type) && LIST_BLOCK_TYPES.has(curr.type)
+          ? "\n"
+          : "\n\n";
+      parts.push(sep);
+    }
+    parts.push(blockToMarkdown(blocks[i]));
+  }
+  return parts.join("");
 }
 
 // Convert property value to YAML-safe string

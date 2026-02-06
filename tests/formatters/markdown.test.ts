@@ -480,4 +480,607 @@ describe("markdownFormatter", () => {
       expect(content).toBe("- Parent\n  - Child");
     });
   });
+
+  describe("block separator", () => {
+    describe("consecutive list items use single newline", () => {
+      test("bulleted_list_item → bulleted_list_item", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "bulleted_list_item", richText: [{ text: "A" }] },
+            { type: "bulleted_list_item", richText: [{ text: "B" }] },
+            { type: "bulleted_list_item", richText: [{ text: "C" }] },
+          ]),
+        );
+        expect(content).toBe("- A\n- B\n- C");
+      });
+
+      test("numbered_list_item → numbered_list_item", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "numbered_list_item", richText: [{ text: "1" }] },
+            { type: "numbered_list_item", richText: [{ text: "2" }] },
+            { type: "numbered_list_item", richText: [{ text: "3" }] },
+          ]),
+        );
+        expect(content).toBe("1. 1\n1. 2\n1. 3");
+      });
+
+      test("to_do → to_do", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "to_do", richText: [{ text: "A" }], checked: false },
+            { type: "to_do", richText: [{ text: "B" }], checked: true },
+            { type: "to_do", richText: [{ text: "C" }], checked: false },
+          ]),
+        );
+        expect(content).toBe("- [ ] A\n- [x] B\n- [ ] C");
+      });
+
+      test("toggle → toggle", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "toggle", richText: [{ text: "A" }] },
+            { type: "toggle", richText: [{ text: "B" }] },
+          ]),
+        );
+        expect(content).toBe("- A\n- B");
+      });
+    });
+
+    describe("mixed list types use single newline", () => {
+      test("bulleted_list_item → numbered_list_item", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "bulleted_list_item", richText: [{ text: "Bullet" }] },
+            { type: "numbered_list_item", richText: [{ text: "Number" }] },
+          ]),
+        );
+        expect(content).toBe("- Bullet\n1. Number");
+      });
+
+      test("numbered_list_item → to_do", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "numbered_list_item", richText: [{ text: "Step" }] },
+            { type: "to_do", richText: [{ text: "Task" }], checked: false },
+          ]),
+        );
+        expect(content).toBe("1. Step\n- [ ] Task");
+      });
+
+      test("to_do → toggle", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "to_do", richText: [{ text: "Task" }], checked: true },
+            { type: "toggle", richText: [{ text: "Toggle" }] },
+          ]),
+        );
+        expect(content).toBe("- [x] Task\n- Toggle");
+      });
+
+      test("bulleted → numbered → to_do → toggle", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "bulleted_list_item", richText: [{ text: "A" }] },
+            { type: "numbered_list_item", richText: [{ text: "B" }] },
+            { type: "to_do", richText: [{ text: "C" }], checked: false },
+            { type: "toggle", richText: [{ text: "D" }] },
+          ]),
+        );
+        expect(content).toBe("- A\n1. B\n- [ ] C\n- D");
+      });
+    });
+
+    describe("list items with nested children use single newline between siblings", () => {
+      test("bulleted with children → bulleted with children", () => {
+        const content = getContent(
+          formatBlocks([
+            {
+              type: "bulleted_list_item",
+              richText: [{ text: "Parent 1" }],
+              children: [
+                {
+                  type: "bulleted_list_item",
+                  richText: [{ text: "Child 1" }],
+                },
+              ],
+            },
+            {
+              type: "bulleted_list_item",
+              richText: [{ text: "Parent 2" }],
+              children: [
+                {
+                  type: "bulleted_list_item",
+                  richText: [{ text: "Child 2" }],
+                },
+              ],
+            },
+          ]),
+        );
+        expect(content).toBe(
+          "- Parent 1\n  - Child 1\n- Parent 2\n  - Child 2",
+        );
+      });
+
+      test("numbered with nested children", () => {
+        const content = getContent(
+          formatBlocks([
+            {
+              type: "numbered_list_item",
+              richText: [{ text: "Step 1" }],
+              children: [
+                {
+                  type: "numbered_list_item",
+                  richText: [{ text: "Sub 1a" }],
+                },
+                {
+                  type: "numbered_list_item",
+                  richText: [{ text: "Sub 1b" }],
+                },
+              ],
+            },
+            {
+              type: "numbered_list_item",
+              richText: [{ text: "Step 2" }],
+            },
+          ]),
+        );
+        expect(content).toBe("1. Step 1\n  1. Sub 1a\n  1. Sub 1b\n1. Step 2");
+      });
+    });
+
+    describe("non-list blocks use double newline", () => {
+      test("paragraph → paragraph", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "paragraph", richText: [{ text: "First" }] },
+            { type: "paragraph", richText: [{ text: "Second" }] },
+          ]),
+        );
+        expect(content).toBe("First\n\nSecond");
+      });
+
+      test("heading_2 → heading_2", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "heading_2", richText: [{ text: "H2 A" }] },
+            { type: "heading_2", richText: [{ text: "H2 B" }] },
+          ]),
+        );
+        expect(content).toBe("## H2 A\n\n## H2 B");
+      });
+
+      test("heading_2 → heading_3", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "heading_2", richText: [{ text: "H2" }] },
+            { type: "heading_3", richText: [{ text: "H3" }] },
+          ]),
+        );
+        expect(content).toBe("## H2\n\n### H3");
+      });
+
+      test("quote → quote", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "quote", richText: [{ text: "Q1" }] },
+            { type: "quote", richText: [{ text: "Q2" }] },
+          ]),
+        );
+        expect(content).toBe("> Q1\n\n> Q2");
+      });
+
+      test("callout → callout", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "callout", richText: [{ text: "C1" }] },
+            { type: "callout", richText: [{ text: "C2" }] },
+          ]),
+        );
+        expect(content).toBe("> C1\n\n> C2");
+      });
+
+      test("code → code", () => {
+        const content = getContent(
+          formatBlocks([
+            {
+              type: "code",
+              richText: [{ text: "a()" }],
+              language: "js",
+            },
+            {
+              type: "code",
+              richText: [{ text: "b()" }],
+              language: "py",
+            },
+          ]),
+        );
+        expect(content).toBe("```js\na()\n```\n\n```py\nb()\n```");
+      });
+
+      test("divider → divider", () => {
+        const content = getContent(
+          formatBlocks([{ type: "divider" }, { type: "divider" }]),
+        );
+        expect(content).toBe("---\n\n---");
+      });
+    });
+
+    describe("transitions between list and non-list use double newline", () => {
+      test("heading → bulleted_list_item", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "heading_2", richText: [{ text: "Section" }] },
+            { type: "bulleted_list_item", richText: [{ text: "Item" }] },
+          ]),
+        );
+        expect(content).toBe("## Section\n\n- Item");
+      });
+
+      test("heading → numbered_list_item", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "heading_2", richText: [{ text: "Steps" }] },
+            { type: "numbered_list_item", richText: [{ text: "Step 1" }] },
+          ]),
+        );
+        expect(content).toBe("## Steps\n\n1. Step 1");
+      });
+
+      test("bulleted_list_item → heading", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "bulleted_list_item", richText: [{ text: "Item" }] },
+            { type: "heading_2", richText: [{ text: "Next" }] },
+          ]),
+        );
+        expect(content).toBe("- Item\n\n## Next");
+      });
+
+      test("numbered_list_item → heading", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "numbered_list_item", richText: [{ text: "Step" }] },
+            { type: "heading_2", richText: [{ text: "Next" }] },
+          ]),
+        );
+        expect(content).toBe("1. Step\n\n## Next");
+      });
+
+      test("bulleted_list_item → paragraph", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "bulleted_list_item", richText: [{ text: "Item" }] },
+            { type: "paragraph", richText: [{ text: "Text" }] },
+          ]),
+        );
+        expect(content).toBe("- Item\n\nText");
+      });
+
+      test("paragraph → bulleted_list_item", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "paragraph", richText: [{ text: "Text" }] },
+            { type: "bulleted_list_item", richText: [{ text: "Item" }] },
+          ]),
+        );
+        expect(content).toBe("Text\n\n- Item");
+      });
+
+      test("numbered_list_item → paragraph", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "numbered_list_item", richText: [{ text: "Step" }] },
+            { type: "paragraph", richText: [{ text: "Text" }] },
+          ]),
+        );
+        expect(content).toBe("1. Step\n\nText");
+      });
+
+      test("paragraph → numbered_list_item", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "paragraph", richText: [{ text: "Text" }] },
+            { type: "numbered_list_item", richText: [{ text: "Step" }] },
+          ]),
+        );
+        expect(content).toBe("Text\n\n1. Step");
+      });
+
+      test("bulleted_list_item → quote", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "bulleted_list_item", richText: [{ text: "Item" }] },
+            { type: "quote", richText: [{ text: "Quote" }] },
+          ]),
+        );
+        expect(content).toBe("- Item\n\n> Quote");
+      });
+
+      test("quote → bulleted_list_item", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "quote", richText: [{ text: "Quote" }] },
+            { type: "bulleted_list_item", richText: [{ text: "Item" }] },
+          ]),
+        );
+        expect(content).toBe("> Quote\n\n- Item");
+      });
+
+      test("bulleted_list_item → code", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "bulleted_list_item", richText: [{ text: "Item" }] },
+            { type: "code", richText: [{ text: "x()" }], language: "js" },
+          ]),
+        );
+        expect(content).toBe("- Item\n\n```js\nx()\n```");
+      });
+
+      test("bulleted_list_item → divider", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "bulleted_list_item", richText: [{ text: "Item" }] },
+            { type: "divider" },
+          ]),
+        );
+        expect(content).toBe("- Item\n\n---");
+      });
+
+      test("to_do → paragraph", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "to_do", richText: [{ text: "Task" }], checked: false },
+            { type: "paragraph", richText: [{ text: "Text" }] },
+          ]),
+        );
+        expect(content).toBe("- [ ] Task\n\nText");
+      });
+
+      test("toggle → heading", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "toggle", richText: [{ text: "Toggle" }] },
+            { type: "heading_2", richText: [{ text: "Section" }] },
+          ]),
+        );
+        expect(content).toBe("- Toggle\n\n## Section");
+      });
+    });
+
+    describe("other non-list transitions use double newline", () => {
+      test("heading → paragraph", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "heading_2", richText: [{ text: "Title" }] },
+            { type: "paragraph", richText: [{ text: "Body" }] },
+          ]),
+        );
+        expect(content).toBe("## Title\n\nBody");
+      });
+
+      test("paragraph → heading", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "paragraph", richText: [{ text: "Body" }] },
+            { type: "heading_2", richText: [{ text: "Title" }] },
+          ]),
+        );
+        expect(content).toBe("Body\n\n## Title");
+      });
+
+      test("paragraph → divider", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "paragraph", richText: [{ text: "Text" }] },
+            { type: "divider" },
+          ]),
+        );
+        expect(content).toBe("Text\n\n---");
+      });
+
+      test("divider → paragraph", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "divider" },
+            { type: "paragraph", richText: [{ text: "Text" }] },
+          ]),
+        );
+        expect(content).toBe("---\n\nText");
+      });
+
+      test("paragraph → code", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "paragraph", richText: [{ text: "Text" }] },
+            { type: "code", richText: [{ text: "x()" }], language: "js" },
+          ]),
+        );
+        expect(content).toBe("Text\n\n```js\nx()\n```");
+      });
+
+      test("code → paragraph", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "code", richText: [{ text: "x()" }], language: "js" },
+            { type: "paragraph", richText: [{ text: "Text" }] },
+          ]),
+        );
+        expect(content).toBe("```js\nx()\n```\n\nText");
+      });
+
+      test("quote → paragraph", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "quote", richText: [{ text: "Quote" }] },
+            { type: "paragraph", richText: [{ text: "Text" }] },
+          ]),
+        );
+        expect(content).toBe("> Quote\n\nText");
+      });
+
+      test("paragraph → quote", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "paragraph", richText: [{ text: "Text" }] },
+            { type: "quote", richText: [{ text: "Quote" }] },
+          ]),
+        );
+        expect(content).toBe("Text\n\n> Quote");
+      });
+
+      test("heading → divider", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "heading_2", richText: [{ text: "Title" }] },
+            { type: "divider" },
+          ]),
+        );
+        expect(content).toBe("## Title\n\n---");
+      });
+
+      test("heading → code", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "heading_2", richText: [{ text: "Code" }] },
+            { type: "code", richText: [{ text: "x()" }], language: "js" },
+          ]),
+        );
+        expect(content).toBe("## Code\n\n```js\nx()\n```");
+      });
+
+      test("heading → quote", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "heading_2", richText: [{ text: "Section" }] },
+            { type: "quote", richText: [{ text: "Quote" }] },
+          ]),
+        );
+        expect(content).toBe("## Section\n\n> Quote");
+      });
+    });
+
+    describe("realistic sequences", () => {
+      test("heading → list → paragraph", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "heading_2", richText: [{ text: "Steps" }] },
+            { type: "numbered_list_item", richText: [{ text: "Do A" }] },
+            { type: "numbered_list_item", richText: [{ text: "Do B" }] },
+            { type: "numbered_list_item", richText: [{ text: "Do C" }] },
+            { type: "paragraph", richText: [{ text: "Done." }] },
+          ]),
+        );
+        expect(content).toBe("## Steps\n\n1. Do A\n1. Do B\n1. Do C\n\nDone.");
+      });
+
+      test("paragraph → list → heading", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "paragraph", richText: [{ text: "Intro" }] },
+            { type: "bulleted_list_item", richText: [{ text: "X" }] },
+            { type: "bulleted_list_item", richText: [{ text: "Y" }] },
+            { type: "heading_2", richText: [{ text: "Next" }] },
+          ]),
+        );
+        expect(content).toBe("Intro\n\n- X\n- Y\n\n## Next");
+      });
+
+      test("paragraph → divider → paragraph", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "paragraph", richText: [{ text: "Before" }] },
+            { type: "divider" },
+            { type: "paragraph", richText: [{ text: "After" }] },
+          ]),
+        );
+        expect(content).toBe("Before\n\n---\n\nAfter");
+      });
+
+      test("full document structure", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "heading_2", richText: [{ text: "Overview" }] },
+            { type: "paragraph", richText: [{ text: "Intro text." }] },
+            { type: "heading_2", richText: [{ text: "Steps" }] },
+            { type: "numbered_list_item", richText: [{ text: "First" }] },
+            { type: "numbered_list_item", richText: [{ text: "Second" }] },
+            { type: "paragraph", richText: [{ text: "Conclusion." }] },
+            { type: "divider" },
+            {
+              type: "bulleted_list_item",
+              richText: [{ text: "Note A" }],
+            },
+            {
+              type: "bulleted_list_item",
+              richText: [{ text: "Note B" }],
+            },
+          ]),
+        );
+        expect(content).toBe(
+          "## Overview\n\nIntro text.\n\n## Steps\n\n1. First\n1. Second\n\nConclusion.\n\n---\n\n- Note A\n- Note B",
+        );
+      });
+
+      test("everything in sequence", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "paragraph", richText: [{ text: "Text" }] },
+            { type: "heading_2", richText: [{ text: "H2" }] },
+            { type: "bulleted_list_item", richText: [{ text: "B1" }] },
+            { type: "bulleted_list_item", richText: [{ text: "B2" }] },
+            { type: "numbered_list_item", richText: [{ text: "N1" }] },
+            { type: "numbered_list_item", richText: [{ text: "N2" }] },
+            { type: "quote", richText: [{ text: "Q" }] },
+            {
+              type: "code",
+              richText: [{ text: "code" }],
+              language: "js",
+            },
+            { type: "divider" },
+            { type: "paragraph", richText: [{ text: "End" }] },
+          ]),
+        );
+        expect(content).toBe(
+          "Text\n\n## H2\n\n- B1\n- B2\n1. N1\n1. N2\n\n> Q\n\n```js\ncode\n```\n\n---\n\nEnd",
+        );
+      });
+    });
+
+    describe("empty blocks", () => {
+      test("empty paragraph between paragraphs", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "paragraph", richText: [{ text: "A" }] },
+            { type: "paragraph", richText: [{ text: "" }] },
+            { type: "paragraph", richText: [{ text: "B" }] },
+          ]),
+        );
+        expect(content).toBe("A\n\n\n\nB");
+      });
+
+      test("empty paragraph between list and heading", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "bulleted_list_item", richText: [{ text: "Item" }] },
+            { type: "paragraph", richText: [{ text: "" }] },
+            { type: "heading_2", richText: [{ text: "Next" }] },
+          ]),
+        );
+        expect(content).toBe("- Item\n\n\n\n## Next");
+      });
+
+      test("no blocks produces empty string", () => {
+        const content = getContent(formatBlocks([]));
+        expect(content).toBe("");
+      });
+
+      test("single block has no separator", () => {
+        const content = getContent(
+          formatBlocks([{ type: "paragraph", richText: [{ text: "Only" }] }]),
+        );
+        expect(content).toBe("Only");
+      });
+    });
+  });
 });
