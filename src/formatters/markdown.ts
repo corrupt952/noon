@@ -104,7 +104,7 @@ function blockToMarkdown(block: SlimBlock, indent: string = ""): string {
 
 // Convert blocks array to markdown
 function blocksToMarkdown(blocks: SlimBlock[]): string {
-  return blocks.map((block) => blockToMarkdown(block)).join("\n\n");
+  return blocks.map((block) => blockToMarkdown(block)).join("\n");
 }
 
 // Convert property value to YAML-safe string
