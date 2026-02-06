@@ -1048,28 +1048,6 @@ describe("markdownFormatter", () => {
     });
 
     describe("empty blocks", () => {
-      test("empty paragraph between paragraphs", () => {
-        const content = getContent(
-          formatBlocks([
-            { type: "paragraph", richText: [{ text: "A" }] },
-            { type: "paragraph", richText: [{ text: "" }] },
-            { type: "paragraph", richText: [{ text: "B" }] },
-          ]),
-        );
-        expect(content).toBe("A\n\n\n\nB");
-      });
-
-      test("empty paragraph between list and heading", () => {
-        const content = getContent(
-          formatBlocks([
-            { type: "bulleted_list_item", richText: [{ text: "Item" }] },
-            { type: "paragraph", richText: [{ text: "" }] },
-            { type: "heading_2", richText: [{ text: "Next" }] },
-          ]),
-        );
-        expect(content).toBe("- Item\n\n\n\n## Next");
-      });
-
       test("no blocks produces empty string", () => {
         const content = getContent(formatBlocks([]));
         expect(content).toBe("");
@@ -1080,6 +1058,73 @@ describe("markdownFormatter", () => {
           formatBlocks([{ type: "paragraph", richText: [{ text: "Only" }] }]),
         );
         expect(content).toBe("Only");
+      });
+    });
+
+    describe("trimExcessiveBlankLines", () => {
+      test("empty paragraph between paragraphs is normalized", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "paragraph", richText: [{ text: "A" }] },
+            { type: "paragraph", richText: [{ text: "" }] },
+            { type: "paragraph", richText: [{ text: "B" }] },
+          ]),
+        );
+        expect(content).toBe("A\n\nB");
+      });
+
+      test("empty paragraph between list and heading is normalized", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "bulleted_list_item", richText: [{ text: "Item" }] },
+            { type: "paragraph", richText: [{ text: "" }] },
+            { type: "heading_2", richText: [{ text: "Next" }] },
+          ]),
+        );
+        expect(content).toBe("- Item\n\n## Next");
+      });
+
+      test("two empty paragraphs between blocks is normalized", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "paragraph", richText: [{ text: "A" }] },
+            { type: "paragraph", richText: [{ text: "" }] },
+            { type: "paragraph", richText: [{ text: "" }] },
+            { type: "paragraph", richText: [{ text: "B" }] },
+          ]),
+        );
+        expect(content).toBe("A\n\nB");
+      });
+
+      test("empty paragraph between two list items is normalized", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "bulleted_list_item", richText: [{ text: "A" }] },
+            { type: "paragraph", richText: [{ text: "" }] },
+            { type: "bulleted_list_item", richText: [{ text: "B" }] },
+          ]),
+        );
+        expect(content).toBe("- A\n\n- B");
+      });
+
+      test("normal double newline is not affected", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "paragraph", richText: [{ text: "A" }] },
+            { type: "paragraph", richText: [{ text: "B" }] },
+          ]),
+        );
+        expect(content).toBe("A\n\nB");
+      });
+
+      test("single newline between list items is not affected", () => {
+        const content = getContent(
+          formatBlocks([
+            { type: "bulleted_list_item", richText: [{ text: "A" }] },
+            { type: "bulleted_list_item", richText: [{ text: "B" }] },
+          ]),
+        );
+        expect(content).toBe("- A\n- B");
       });
     });
   });

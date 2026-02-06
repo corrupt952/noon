@@ -128,6 +128,11 @@ function blocksToMarkdown(blocks: SlimBlock[]): string {
   return parts.join("");
 }
 
+// Normalize 3+ consecutive newlines to 2 (single blank line)
+function trimExcessiveBlankLines(text: string): string {
+  return text.replace(/\n{3,}/g, "\n\n");
+}
+
 // Convert property value to YAML-safe string
 function propertyValueToYaml(value: PropertyValue, indent = ""): string {
   if (value === null) return "null";
@@ -185,9 +190,9 @@ export const markdownFormatter: PageFormatter = {
     const title = `# ${data.page.title}`;
     const content = blocksToMarkdown(data.blocks);
 
-    if (frontmatter) {
-      return `${frontmatter}\n\n${title}\n\n${content}`;
-    }
-    return `${title}\n\n${content}`;
+    const result = frontmatter
+      ? `${frontmatter}\n\n${title}\n\n${content}`
+      : `${title}\n\n${content}`;
+    return trimExcessiveBlankLines(result);
   },
 };
